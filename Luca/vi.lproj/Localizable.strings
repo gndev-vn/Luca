@@ -1,0 +1,349 @@
+/* 
+  Localizable.strings
+  Luca - Vietnamese
+
+  Created by Kiro on 19/12/25.
+  
+*/
+
+// Tab bar
+"calendar" = "Lịch";
+"events" = "Sự kiện";
+"settings" = "Cài đặt";
+
+// Common actions
+"done" = "Xong";
+"cancel" = "Hủy";
+"delete" = "Xóa";
+"save" = "Lưu";
+"edit" = "Chỉnh sửa";
+"add" = "Thêm";
+
+// Calendar
+"lunar_calendar" = "Âm lịch";
+"no_events_for_date" = "Không có sự kiện cho ngày này";
+"loading_events" = "Đang tải sự kiện...";
+"today" = "Hôm nay";
+"lunar_date_display_format" = "Âm lịch ngày %d, tháng %d, năm %@";
+"lunar_leap_month_indicator" = "Nhuận";
+"lunar_full_year_format" = "Năm %@ (%@)";
+"lunar_date_line1_format" = "Ngày %d tháng %d năm %d";
+"lunar_date_line2_format" = "Ngày %@, tháng %@, năm %@";
+"gregorian_date_format" = "Nhằm ngày %@ dương lịch";
+"corresponding_gregorian" = "Nhằm ngày %@";
+"lunar_day_zodiac_format" = "Ngày %@, Tháng %@";
+"lunar_date_search_format" = "ngày %d tháng %d năm %d";
+"select_lunar_month" = "Chọn tháng âm lịch";
+
+// App Loading
+"initialization_failed" = "Khởi tạo thất bại";
+"initialization_error_description" = "Đã xảy ra lỗi khi thiết lập ứng dụng.";
+"error_details" = "Chi tiết lỗi:";
+"try_again" = "Thử lại";
+"restart_prompt" = "Nếu sự cố vẫn tiếp diễn, vui lòng khởi động lại ứng dụng.";
+"lunar_month_1" = "Tháng Giêng";
+"lunar_month_2" = "Tháng Hai";
+"lunar_month_3" = "Tháng Ba";
+"lunar_month_4" = "Tháng Tư";
+"lunar_month_5" = "Tháng Năm";
+"lunar_month_6" = "Tháng Sáu";
+"lunar_month_7" = "Tháng Bảy";
+"lunar_month_8" = "Tháng Tám";
+"lunar_month_9" = "Tháng Chín";
+"lunar_month_10" = "Tháng Mười";
+"lunar_month_11" = "Tháng Mười Một";
+"lunar_month_12" = "Tháng Chạp";
+"lunar_accessibility_format" = "%@: ngày %d, %@%@, năm %d";
+"lunar_accessibility_leap_prefix" = "nhuận ";
+"lunar_accessibility_month_1" = "tháng Giêng";
+"lunar_accessibility_month_2" = "tháng Hai";
+"lunar_accessibility_month_3" = "tháng Ba";
+"lunar_accessibility_month_4" = "tháng Tư";
+"lunar_accessibility_month_5" = "tháng Năm";
+"lunar_accessibility_month_6" = "tháng Sáu";
+"lunar_accessibility_month_7" = "tháng Bảy";
+"lunar_accessibility_month_8" = "tháng Tám";
+"lunar_accessibility_month_9" = "tháng Chín";
+"lunar_accessibility_month_10" = "tháng Mười";
+"lunar_accessibility_month_11" = "tháng Mười Một";
+"lunar_accessibility_month_12" = "tháng Chạp";
+
+// Events
+"event_details" = "Chi tiết sự kiện";
+"holiday_details" = "Chi tiết ngày lễ";
+"delete_event" = "Xóa sự kiện";
+"create_event" = "Tạo sự kiện";
+"edit_event" = "Chỉnh sửa sự kiện";
+
+// Settings
+"notification_settings" = "Cài đặt thông báo";
+"theme_settings" = "Cài đặt giao diện";
+"about" = "Giới thiệu";
+
+// Error messages
+"event_not_found" = "Không Tìm Thấy Sự Kiện";
+"loading_event" = "Đang tải sự kiện...";
+"go_back" = "Quay Lại";
+"event_not_found_message" = "Sự kiện bạn đang tìm kiếm không thể tìm thấy. Nó có thể đã bị xóa.";
+"failed_to_load_event" = "Không thể tải sự kiện";
+
+// Additional UI strings
+"loading" = "Đang tải...";
+"leap_month" = "Tháng Nhuận";
+"duration" = "Thời gian";
+"day" = "ngày";
+"days" = "ngày";
+"reminders" = "Nhắc nhở";
+"reminder" = "nhắc nhở";
+"public_holidays" = "ngày lễ công cộng";
+
+// Language settings
+"language" = "Ngôn ngữ";
+"theme_system" = "Hệ thống";
+"theme_light" = "Sáng";
+"theme_dark" = "Tối";
+"preview_holiday_event" = "Tết Nguyên Đán";
+"preview_personal_event" = "Bữa cơm gia đình";
+
+// Additional UI strings for other views
+"lunar_date" = "Ngày âm lịch";
+"no_events_on_date" = "Không có sự kiện vào ngày này";
+"permission_status" = "Trạng thái quyền";
+"enable_notifications_description" = "Bật thông báo để nhận lời nhắc cho các sự kiện và ngày lễ âm lịch của bạn.";
+"scheduled_notifications" = "Thông báo đã lên lịch";
+"scheduled_notifications_description" = "Đây là những lời nhắc sự kiện hiện tại của bạn.";
+"notification_types" = "Loại thông báo";
+"notifications" = "Thông báo";
+"advanced" = "Nâng cao";
+"reset_settings_description" = "Đặt lại tất cả cài đặt về giá trị mặc định. Hành động này không thể hoàn tác.";
+"preview" = "Xem trước";
+"theme_options" = "Tùy chọn chủ đề";
+"theme_description" = "Chọn giao diện ứng dụng ưa thích của bạn. Chủ đề hệ thống theo cài đặt thiết bị của bạn.";
+"theme_information" = "Thông tin chủ đề";
+"event_title" = "Tiêu đề sự kiện";
+"description_optional" = "Mô tả (tùy chọn)";
+"upcoming_events" = "Sắp diễn ra";
+"and_more_format" = "và %d cái khác...";
+
+// Event Form
+"new_event" = "Sự kiện mới";
+"category" = "Danh mục";
+"reminder_description" = "Nhắc nhở sẽ được gửi dưới dạng thông báo iOS vào thời gian đã chỉ định";
+"validation_error" = "Lỗi xác thực";
+"event_title_required" = "Tiêu đề sự kiện là bắt buộc";
+"invalid_lunar_date" = "Ngày âm lịch không hợp lệ";
+"saving" = "Đang lưu...";
+"create" = "Tạo";
+"select_lunar_date" = "Chọn ngày âm lịch";
+"gregorian_equivalent" = "Tương đương dương lịch";
+"year" = "Năm";
+"month" = "Tháng";
+
+// Event Management & Templates
+"add_event" = "Thêm sự kiện";
+"quick_add" = "Thêm nhanh";
+"create_custom_event" = "Tạo sự kiện tùy chỉnh";
+"add_personalized_event" = "Thêm sự kiện âm lịch cá nhân hóa";
+"common_events" = "Sự kiện phổ biến";
+"recent_events" = "Sự kiện gần đây";
+"duplicate" = "Sao chép";
+"date_information" = "Thông tin ngày";
+"gregorian_date" = "Ngày dương lịch";
+"description" = "Mô tả";
+"delete_event_confirmation" = "Xóa sự kiện";
+"delete_event_message" = "Bạn có chắc chắn muốn xóa '%@' không? Hành động này không thể hoàn tác.";
+
+// Event Templates
+"birthday" = "Sinh nhật";
+"celebrate_birthday" = "Chúc mừng sinh nhật ai đó";
+"anniversary" = "Kỷ niệm";
+"wedding_anniversary" = "Kỷ niệm ngày cưới hoặc tình yêu";
+"family_gathering" = "Họp mặt gia đình";
+"family_reunion" = "Đoàn tụ gia đình hoặc họp mặt";
+"cultural_festival" = "Lễ hội văn hóa";
+"traditional_celebration" = "Lễ kỷ niệm văn hóa truyền thống";
+"memorial_day" = "Ngày tưởng niệm";
+"remember_ancestors" = "Tưởng nhớ và tôn vinh tổ tiên";
+"personal_milestone" = "Cột mốc cá nhân";
+"personal_achievement" = "Thành tựu hoặc cột mốc cá nhân";
+"copy" = "Sao chép";
+
+// Date Detail View
+"date_details" = "Chi tiết ngày";
+
+// Onboarding
+"back" = "Quay lại";
+"welcome_to_luca" = "Chào mừng đến với Luca";
+"onboarding_welcome_description" = "Theo dõi các sự kiện âm lịch như các ngày lễ, ngày cúng rằm, cúng mồng 1, lễ Phật đản hoặc các sự kiện cá nhân như ngày giỗ ...";
+"get_started" = "Bắt đầu";
+"continue_action" = "Tiếp tục";
+"enable_notifications" = "Bật thông báo";
+"notifications_description" = "Nhận thông báo nhắc nhở về các ngày lễ và sự kiện cá nhân.";
+"event_reminders" = "Nhắc nhở sự kiện";
+"event_reminders_description" = "Không bỏ lỡ các ngày sự kiện âm lịch quan trọng";
+"holiday_alerts" = "Thông báo ngày lễ";
+"holiday_alerts_description" = "Nhận thông báo về các ngày lễ";
+"notifications_enabled" = "Thông báo đã bật";
+"skip_for_now" = "Bỏ qua";
+"powerful_features" = "Tính năng nổi bật";
+"features_description" = "Khám phá những gì làm cho Luca trở nên đặc biệt.";
+"unified_calendar" = "Lịch âm";
+"unified_calendar_desc" = "Xem tháng âm lịch đầy đủ với hoàng đạo và năm con giáp";
+"cultural_holidays" = "Ngày lễ Việt Nam";
+"cultural_holidays_desc" = "Tết, Rằm, Mồng Một & các ngày lễ Phật giáo";
+"custom_events" = "Sự kiện cá nhân";
+"custom_events_desc" = "Tạo sự kiện với thẻ, danh mục & lặp lại";
+"smart_reminders" = "Thông báo nhắc nhở";
+"smart_reminders_desc" = "Nhắc trong ngày & trước ngày với âm thanh và rung";
+"youre_all_set" = "Bạn đã sẵn sàng!";
+"start_using_luca" = "Bắt đầu sử dụng Luca";
+"onboarding_personal_event_reminders" = "Nhắc nhở sự kiện âm lịch cá nhân";
+"onboarding_personal_event_reminders_desc" = "Các sự kiện âm lịch cá nhân quan trọng sẽ được nhắc";
+"onboarding_holidays_events" = "Ngày lễ và sự kiện";
+"onboarding_holidays_events_desc" = "Tự động đánh dấu các ngày lễ và sự kiện truyền thống của Việt Nam";
+"onboarding_notifications" = "Thông báo";
+"onboarding_notifications_desc" = "Thông báo sự kiện, không bỏ lỡ điều quan trọng.";
+
+// About
+"about_luca" = "Về Luca";
+"about_description" = "Theo dõi ngày âm lịch, ngày lễ và sự kiện cá nhân của Việt Nam với nhắc nhở thông minh. Hỗ trợ đầy đủ tiếng Việt và tiếng Anh.";
+"features_title" = "Tính năng";
+"vietnamese_lunar_calendar" = "Đa ngôn ngữ";
+"vietnamese_calendar_desc" = "Tiếng Việt & tiếng Anh với chuyển đổi ngôn ngữ trong ứng dụng";
+"credits_title" = "Ghi nhận";
+"credit_calc_algo" = "• Tính toán âm lịch dựa trên thuật toán thiên văn";
+"credit_holiday_data" = "• Dữ liệu ngày lễ từ lịch chính thống Việt Nam";
+"credit_community" = "• Phản hồi và đóng góp văn hóa từ cộng đồng";
+"credit_swift_ui" = "• Xây dựng với SwiftUI và các framework iOS hiện đại";
+"legal_title" = "Pháp lý";
+"privacy_policy" = "Chính sách bảo mật";
+"privacy_policy_desc" = "Tất cả dữ liệu được lưu trên thiết bị — không thu thập thông tin";
+"open_source" = "Mã nguồn mở";
+"open_source_desc" = "Xây dựng với các thành phần mã nguồn mở";
+"contact_support" = "Liên hệ & Hỗ trợ";
+"email_support" = "Hỗ trợ qua Email";
+"email_support_desc" = "Gửi phản hồi hoặc báo cáo lỗi";
+"rate_app_store" = "Đánh giá trên App Store";
+"rate_app_store_desc" = "Giúp chúng tôi cải thiện với đánh giá của bạn";
+"copyright" = "© 2025 Luca. Bản quyền thuộc về Luca.";
+"lunar_calendar_app" = "Ứng dụng Lịch Âm";
+"version_format" = "Phiên bản %@ (%@)";
+
+// Notification settings
+"holiday_notifications" = "Thông báo ngày lễ";
+"holiday_notifications_desc" = "Thông báo cho các ngày lễ âm lịch công cộng";
+"request_permission" = "Yêu cầu quyền";
+"open_settings" = "Mở cài đặt";
+"notifications_disabled" = "Thông báo đã tắt";
+"permission_required" = "Yêu cầu quyền truy cập";
+"provisional_access" = "Quyền truy cập tạm thời";
+"temporary_access" = "Quyền truy cập ngắn hạn";
+"unknown_status" = "Trạng thái không xác định";
+"notifications_enabled_desc" = "Bạn sẽ nhận được thông báo cho các sự kiện và ngày lễ âm lịch.";
+"notifications_disabled_desc" = "Thông báo đã bị tắt. Bật chúng trong Cài đặt để nhận lời nhắc.";
+"permission_required_desc" = "Cấp quyền để nhận thông báo cho các sự kiện âm lịch.";
+"provisional_access_desc" = "Thông báo được gửi im lặng. Bạn có thể thay đổi điều này trong Cài đặt.";
+"temporary_access_desc" = "Quyền truy cập thông báo tạm thời cho phiên này.";
+"unknown_status_desc" = "Không thể xác định trạng thái quyền thông báo.";
+
+// Theme settings
+"automatic_theme" = "Chủ đề tự động";
+"automatic_theme_desc" = "Theo cài đặt chế độ tối của hệ thống";
+"battery_optimization" = "Tối ưu hóa pin";
+"battery_optimization_desc" = "Chủ đề tối có thể giúp tiết kiệm pin trên màn hình OLED";
+"theme_accessibility" = "Khả năng tiếp cận";
+"theme_accessibility_desc" = "Tất cả chủ đề hỗ trợ cỡ chữ động và độ tương phản cao";
+"theme_system_desc" = "Theo cài đặt giao diện của thiết bị";
+"theme_light_desc" = "Luôn sử dụng giao diện sáng";
+"theme_dark_desc" = "Luôn sử dụng giao diện tối";
+
+// Category names
+"category_personal" = "Cá nhân";
+"category_family" = "Gia đình";
+"category_cultural" = "Văn hóa";
+"category_religious" = "Tôn giáo";
+"category_work" = "Công việc";
+"category_other" = "Khác";
+
+// Event recurrence
+"repeats_annually" = "Lặp lại hàng năm";
+"recurrence" = "Lặp lại";
+"repeat_event" = "Lặp lại sự kiện";
+"recurrence_none" = "Không";
+"recurrence_daily" = "mỗi ngày";
+"recurrence_weekly" = "mỗi tuần";
+"recurrence_monthly" = "mỗi tháng";
+"recurrence_yearly" = "mỗi năm";
+
+// Reminder types
+"reminder_on_day" = "Trong ngày";
+"reminder_one_day_before" = "1 ngày trước";
+"reminder_two_days_before" = "2 ngày trước";
+"reminder_three_days_before" = "3 ngày trước";
+
+// Event List Search & Filter
+"search_events" = "Tìm kiếm sự kiện...";
+"all_categories" = "Tất cả";
+"no_results_found" = "Không tìm thấy kết quả";
+"no_events_in_category" = "Không có sự kiện trong danh mục";
+"no_events_yet" = "Chưa có sự kiện";
+"create_first_event" = "Tạo sự kiện đầu tiên";
+"no_results_message" = "Hãy thử điều chỉnh từ khóa tìm kiếm hoặc xem tất cả sự kiện.";
+"no_events_in_category_message" = "Bạn chưa có sự kiện nào trong danh mục %@.";
+"no_events_filter_message" = "Không có sự kiện nào khớp với bộ lọc hiện tại.";
+"create_first_event_message" = "Tạo sự kiện âm lịch đầu tiên để bắt đầu theo dõi các ngày quan trọng và lễ kỷ niệm.";
+"reset_to_defaults" = "Đặt lại mặc định";
+
+// Notification settings
+"notify_on_day" = "Thông báo trong ngày";
+"notify_before" = "Thông báo trước";
+"notification_sound" = "Âm thanh thông báo";
+"vibration" = "Rung";
+"sound_and_vibration" = "Âm thanh & Rung";
+"time" = "Giờ";
+"days_before" = "Số ngày trước";
+"add_tag_placeholder" = "Thêm thẻ…";
+"tags" = "Thẻ";
+
+// Weekday short names (calendar headers and pickers)
+"weekday_short_1" = "CN";
+"weekday_short_format" = "Thứ %d";
+
+// Weekday full names (recurrence descriptions)
+"weekday_full_1" = "Chủ Nhật";
+"weekday_full_2" = "Thứ Hai";
+"weekday_full_3" = "Thứ Ba";
+"weekday_full_4" = "Thứ Tư";
+"weekday_full_5" = "Thứ Năm";
+"weekday_full_6" = "Thứ Sáu";
+"weekday_full_7" = "Thứ Bảy";
+
+// Month display format
+"month_format" = "Tháng %d";
+"month_leap_format" = "Tháng %d Nhuận";
+
+// Recurrence description formats
+"recurrence_weekly_format" = "%@ mỗi tuần";
+"recurrence_monthly_format" = "Ngày %d mỗi tháng";
+"recurrence_yearly_format" = "Ngày %d tháng %d mỗi năm";
+
+// Developer settings
+"developer" = "Nhà phát triển";
+"developer_options" = "Tùy chọn nhà phát triển";
+"re_seed_holidays" = "Chèn lại ngày lễ";
+"re_seed" = "Chèn lại";
+"re_seed_title" = "Chỉnh sửa và cập nhật lại tất cả sự kiện và lễ (trừ sự kiện cá nhân)?";
+"reseeding_description" = "Chỉnh sửa và cập nhật lại sẽ xóa tất cả sự kiện và tạo lại ngày lễ từ mẫu có sẵn.";
+"reseeding_warning" = "Thao tác này sẽ xóa tất cả sự kiện hiện có và tạo lại các sự kiện theo văn hoá Việt Nam. Lưu ý, thao tác này không thể đảo ngược.";
+"holidays_re_seeded" = "Đã chỉnh sửa và cập nhật lại ngày lễ";
+"holidays_re_seeded_success" = "Đã chỉnh sửa và cập nhật lại ngày lễ thành công";
+"failed_to_re_seed" = "Chỉnh sửa và cập nhật lại thất bại";
+"reset_developer_mode" = "Tắt chế độ nhà phát triển";
+"reset_developer_mode_title" = "Tắt chế độ nhà phát triển?";
+"reset_developer_mode_warning" = "Thao tác này sẽ tắt các tùy chọn nhà phát triển. Bạn có thể kích hoạt lại bằng cách chạm vào phiên bản 5 lần trong phần Giới thiệu.";
+"developer_mode_disabled" = "Chế độ nhà phát triển đã tắt";
+"developer_mode_enabled" = "Chế độ nhà phát triển đã bật";
+"reset_all_settings_title" = "Đặt lại tất cả cài đặt?";
+"reset_all_settings_warning" = "Thao tác này sẽ đặt lại tất cả tùy chọn bao gồm ngôn ngữ, giao diện và cài đặt thông báo về mặc định.";
+"settings_saved" = "Đã lưu cài đặt";
+"settings_reset" = "Đã đặt lại cài đặt về mặc định";
