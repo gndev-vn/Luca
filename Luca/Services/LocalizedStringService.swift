@@ -134,6 +134,7 @@ enum LocalizedStringKey: String, CaseIterable {
     case duplicate = "duplicate"
     case dateInformation = "date_information"
     case gregorianDate = "gregorian_date"
+    case gregorian = "gregorian"
     case description = "description"
     case deleteEventConfirmation = "delete_event_confirmation"
     case deleteEventMessage = "delete_event_message"
@@ -278,6 +279,12 @@ enum LocalizedStringKey: String, CaseIterable {
     case noResultsFound = "no_results_found"
     case noEventsInCategory = "no_events_in_category"
     case noEventsYet = "no_events_yet"
+    case noEventsToday = "no_events_today"
+    case noEventsUpcoming = "no_events_upcoming"
+    case noEventsPersonal = "no_events_personal"
+    case noEventsCultural = "no_events_cultural"
+    case noEventsReligion = "no_events_religion"
+
     case createFirstEvent = "create_first_event"
     case noResultsMessage = "no_results_message"
     case noEventsInCategoryMessage = "no_events_in_category_message"
@@ -312,6 +319,9 @@ enum LocalizedStringKey: String, CaseIterable {
     case soundAndVibration = "sound_and_vibration"
     case time = "time"
     case daysBefore = "days_before"
+
+    case culturalNotifications = "cultural_notifications"
+    case religiousNotifications = "religious_notifications"
 
     case recurrenceWeeklyFormat = "recurrence_weekly_format"
     case recurrenceMonthlyFormat = "recurrence_monthly_format"

@@ -10,10 +10,12 @@ struct DeveloperSettingsView: View {
 
     init(settingsManager: SettingsManager,
          notificationManager: NotificationManager,
+         dataManager: DataManager,
          reseedHolidays: (() async throws -> Void)? = nil) {
         self._viewModel = StateObject(wrappedValue: SettingsViewModel(
             settingsManager: settingsManager,
             notificationManager: notificationManager,
+            dataManager: dataManager,
             reseedHolidays: reseedHolidays
         ))
     }

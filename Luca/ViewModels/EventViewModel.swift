@@ -102,7 +102,16 @@ class EventViewModel: ObservableObject {
             notificationManager.cancelAllReminders(for: event.id)
             try await dataManager.updateEvent(event)
             
-            for reminderType in event.reminderSettings {
+            let settings = UserDefaultsSettingsManager().loadSettings()
+            let categoryAllowed: Bool = {
+                switch event.category {
+                case .cultural: return settings.culturalNotificationsEnabled
+                case .religious: return settings.religiousNotificationsEnabled
+                case .personal: return true
+                }
+            }()
+            
+            for reminderType in event.reminderSettings where categoryAllowed {
                 let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
                 if !success {
                     print("Warning: Failed to schedule \(reminderType.displayName) reminder for updated event: \(event.title)")
@@ -129,6 +138,37 @@ class EventViewModel: ObservableObject {
         }
         
         isLoading = false
+    }
+    
+    /// Toggle reminders for an event (quick on/off)
+    func toggleReminders(for event: Event) async {
+        errorMessage = nil
+        
+        do {
+            // Create a copy with toggled reminders
+            var updatedEvent = event
+            if updatedEvent.reminderSettings.isEmpty {
+                // Add default reminder
+                updatedEvent.reminderSettings = [.oneDayBefore]
+            } else {
+                // Remove all reminders
+                updatedEvent.reminderSettings = []
+            }
+            
+            notificationManager.cancelAllReminders(for: updatedEvent.id)
+            try await dataManager.updateEvent(updatedEvent)
+            
+            // Re-schedule if enabled
+            if !updatedEvent.reminderSettings.isEmpty {
+                for reminderType in updatedEvent.reminderSettings {
+                    await notificationManager.scheduleReminder(for: updatedEvent, reminderType: reminderType)
+                }
+            }
+            
+            await loadEvents()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
     
     /// Validate event data

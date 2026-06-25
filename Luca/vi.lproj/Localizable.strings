@@ -149,24 +149,10 @@
 "duplicate" = "Sao chép";
 "date_information" = "Thông tin ngày";
 "gregorian_date" = "Ngày dương lịch";
+"gregorian" = "Dương lịch";
 "description" = "Mô tả";
 "delete_event_confirmation" = "Xóa sự kiện";
 "delete_event_message" = "Bạn có chắc chắn muốn xóa '%@' không? Hành động này không thể hoàn tác.";
-
-// Event Templates
-"birthday" = "Sinh nhật";
-"celebrate_birthday" = "Chúc mừng sinh nhật ai đó";
-"anniversary" = "Kỷ niệm";
-"wedding_anniversary" = "Kỷ niệm ngày cưới hoặc tình yêu";
-"family_gathering" = "Họp mặt gia đình";
-"family_reunion" = "Đoàn tụ gia đình hoặc họp mặt";
-"cultural_festival" = "Lễ hội văn hóa";
-"traditional_celebration" = "Lễ kỷ niệm văn hóa truyền thống";
-"memorial_day" = "Ngày tưởng niệm";
-"remember_ancestors" = "Tưởng nhớ và tôn vinh tổ tiên";
-"personal_milestone" = "Cột mốc cá nhân";
-"personal_achievement" = "Thành tựu hoặc cột mốc cá nhân";
-"copy" = "Sao chép";
 
 // Date Detail View
 "date_details" = "Chi tiết ngày";
@@ -291,6 +277,9 @@
 "no_results_message" = "Hãy thử điều chỉnh từ khóa tìm kiếm hoặc xem tất cả sự kiện.";
 "no_events_in_category_message" = "Bạn chưa có sự kiện nào trong danh mục %@.";
 "no_events_filter_message" = "Không có sự kiện nào khớp với bộ lọc hiện tại.";
+"no_events_today" = "Không có sự kiện sẽ diễn ra hôm nay.";
+"no_events_upcoming" = "Không có sự kiện nào sắp diễn ra.";
+
 "create_first_event_message" = "Tạo sự kiện âm lịch đầu tiên để bắt đầu theo dõi các ngày quan trọng và lễ kỷ niệm.";
 "reset_to_defaults" = "Đặt lại mặc định";
 
@@ -302,6 +291,8 @@
 "sound_and_vibration" = "Âm thanh & Rung";
 "time" = "Giờ";
 "days_before" = "Số ngày trước";
+"cultural_notifications" = "Sự kiện văn hóa";
+"religious_notifications" = "Sự kiện tôn giáo";
 "add_tag_placeholder" = "Thêm thẻ…";
 "tags" = "Thẻ";
 

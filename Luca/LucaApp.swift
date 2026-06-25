@@ -50,15 +50,10 @@ struct LucaApp: App {
         let notificationManager = DefaultNotificationManager()
         let lunarCalendarService = DefaultLunarCalendarService()
         let dataManager = DefaultDataManager(coreDataStack: CoreDataStack.shared)
-        let dynamicReminderService = DynamicReminderService(
-            notificationManager: notificationManager,
-            dataManager: dataManager
-        )
         
         self.notificationManager = notificationManager
         self.lunarCalendarService = lunarCalendarService
         self.dataManager = dataManager
-        self.dynamicReminderService = dynamicReminderService
         
         // Create and store notification delegate to prevent deallocation
         self.notificationDelegate = NotificationDelegate(
@@ -69,6 +64,13 @@ struct LucaApp: App {
         let settingsManager = UserDefaultsSettingsManager()
         self.settingsManager = settingsManager
         self._themeManager = StateObject(wrappedValue: ThemeManager(settingsManager: settingsManager))
+        
+        let dynamicReminderService = DynamicReminderService(
+            notificationManager: notificationManager,
+            dataManager: dataManager,
+            settingsManager: settingsManager
+        )
+        self.dynamicReminderService = dynamicReminderService
 
         // Initialize app initialization service
         self._initializationService = StateObject(wrappedValue: AppInitializationService(

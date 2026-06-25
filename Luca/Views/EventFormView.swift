@@ -446,30 +446,32 @@ struct EventFormView: View {
                         .foregroundColor(.secondary)
                 }
                 
-                // Sound & Vibration Section
-                Section {
-                    Toggle(isOn: $soundEnabled) {
-                        HStack {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .foregroundColor(.blue)
-                                .symbolRenderingMode(.hierarchical)
-                            Text(localized: .notificationSound)
+                // Sound & Vibration Section — only shown when reminders are enabled
+                if notifyOnDay || notifyBefore {
+                    Section {
+                        Toggle(isOn: $soundEnabled) {
+                            HStack {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .foregroundColor(.blue)
+                                    .symbolRenderingMode(.hierarchical)
+                                Text(localized: .notificationSound)
+                            }
                         }
-                    }
-                    
-                    Toggle(isOn: $vibrationEnabled) {
-                        HStack {
-                            Image(systemName: "iphone.radiowaves.left.and.right")
-                                .foregroundColor(.blue)
-                                .symbolRenderingMode(.hierarchical)
-                            Text(localized: .vibration)
+                        
+                        Toggle(isOn: $vibrationEnabled) {
+                            HStack {
+                                Image(systemName: "iphone.radiowaves.left.and.right")
+                                    .foregroundColor(.blue)
+                                    .symbolRenderingMode(.hierarchical)
+                                Text(localized: .vibration)
+                            }
                         }
+                    } header: {
+                        Text(localized: .soundAndVibration)
+                            .textCase(nil)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.secondary)
                     }
-                } header: {
-                    Text(localized: .soundAndVibration)
-                        .textCase(nil)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.secondary)
                 }
                 
                 // Validation Errors
@@ -557,9 +559,7 @@ struct EventFormView: View {
     }
     
     private func gregorianDateString(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yyyy"
-        return formatter.string(from: date)
+        SharedDateFormatters.ddMMyyyy.string(from: date)
     }
     
     private func syncLunarDate() {

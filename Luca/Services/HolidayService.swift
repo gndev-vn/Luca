@@ -23,7 +23,9 @@ class HolidayService {
         "Lễ Vu Lan",
         "Lễ Quan Âm",
         "Lễ Quan Âm Thành Đạo",
-        "Lễ Quan Âm Xuất Gia"
+        "Lễ Quan Âm Xuất Gia",
+        "Ngày Phật Nhập Niết Bàn",
+        "Ngày Phật Thành Đạo"
     ]
     
     /// Only Tết Nguyên Đán is considered a public holiday

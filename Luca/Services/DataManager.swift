@@ -370,6 +370,8 @@ class UserDefaultsSettingsManager: SettingsManager {
 struct UserSettings: Codable {
     var preferredTheme: Theme
     var notificationsEnabled: Bool
+    var culturalNotificationsEnabled: Bool
+    var religiousNotificationsEnabled: Bool
     var firstLaunch: Bool
     var hasCompletedOnboarding: Bool
     var hasSeededPublicHolidays: Bool
@@ -377,6 +379,8 @@ struct UserSettings: Codable {
     enum CodingKeys: String, CodingKey {
         case preferredTheme
         case notificationsEnabled
+        case culturalNotificationsEnabled
+        case religiousNotificationsEnabled
         case firstLaunch
         case hasCompletedOnboarding
         case hasSeededPublicHolidays
@@ -391,12 +395,16 @@ struct UserSettings: Codable {
     init(
         preferredTheme: Theme,
         notificationsEnabled: Bool,
+        culturalNotificationsEnabled: Bool = true,
+        religiousNotificationsEnabled: Bool = true,
         firstLaunch: Bool,
         hasCompletedOnboarding: Bool,
         hasSeededPublicHolidays: Bool = false
     ) {
         self.preferredTheme = preferredTheme
         self.notificationsEnabled = notificationsEnabled
+        self.culturalNotificationsEnabled = culturalNotificationsEnabled
+        self.religiousNotificationsEnabled = religiousNotificationsEnabled
         self.firstLaunch = firstLaunch
         self.hasCompletedOnboarding = hasCompletedOnboarding
         self.hasSeededPublicHolidays = hasSeededPublicHolidays
@@ -406,6 +414,8 @@ struct UserSettings: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         preferredTheme = try container.decodeIfPresent(Theme.self, forKey: .preferredTheme) ?? .system
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? true
+        culturalNotificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .culturalNotificationsEnabled) ?? true
+        religiousNotificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .religiousNotificationsEnabled) ?? true
         firstLaunch = try container.decodeIfPresent(Bool.self, forKey: .firstLaunch) ?? true
         hasCompletedOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? false
         hasSeededPublicHolidays = try container.decodeIfPresent(Bool.self, forKey: .hasSeededPublicHolidays) ?? false

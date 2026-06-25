@@ -59,7 +59,23 @@ struct CalendarView: View {
                     Spacer(minLength: 0)
                 }
             }
+            .gesture(
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                    .onEnded { value in
+                        let horizontal = value.translation.width
+                        let vertical = value.translation.height
+                        if abs(horizontal) > abs(vertical) && abs(horizontal) > 50 {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            if horizontal < 0 {
+                                viewModel.nextMonth()
+                            } else {
+                                viewModel.previousMonth()
+                            }
+                        }
+                    }
+            )
         }
+        .padding(.horizontal, 12)
         .navigationTitle(String.localized(.lunarCalendar))
         .navigationBarTitleDisplayMode(.large)
         .task {
@@ -136,34 +152,6 @@ struct CalendarView: View {
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
-
-                // Left: previous month
-                HStack {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        viewModel.previousMonth()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.accentColor)
-                            .frame(width: 40, height: 40)
-                    }
-                    Spacer()
-                }
-
-                // Right: next month
-                HStack {
-                    Spacer()
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        viewModel.nextMonth()
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.accentColor)
-                            .frame(width: 40, height: 40)
-                    }
-                }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
@@ -193,10 +181,8 @@ struct CalendarView: View {
             lastGregorian = cursor
         }
 
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "vi_VN")
-        fmt.dateFormat = "d/M"
-        return "\(fmt.string(from: firstGregorian)) – \(fmt.string(from: lastGregorian))"
+        let fmt = SharedDateFormatters.ddMMyyyy
+        return "\(String.localized(.gregorian)): \(fmt.string(from: firstGregorian)) – \(fmt.string(from: lastGregorian))"
     }
 
     private func lunarContextTitle(_ lunarDate: LunarDate) -> String {
@@ -385,16 +371,11 @@ struct DateDetailBottomSheet: View {
     // MARK: - Formatted strings
 
     private var dayNumber: String {
-        let f = DateFormatter()
-        f.dateFormat = "d"
-        return f.string(from: date)
+        SharedDateFormatters.dayNumber.string(from: date)
     }
 
     private var gregorianFormattedDate: String {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "vi_VN")
-        f.dateFormat = "dd/MM/yyyy"
-        return f.string(from: date)
+        SharedDateFormatters.ddMMyyyy.string(from: date)
     }
 
     /// "Tháng Năm, Ất Tỵ (2025)" (regular) / "Tháng 5 Ất Tỵ (2025)" (compact)
@@ -518,7 +499,7 @@ struct CalendarGridView: View {
                         .foregroundColor(.secondary)
                         .frame(height: weekdayHeaderHeight)
                 }
-            }
+            }.padding(.vertical, 12)
 
             // Calendar dates
             LazyVGrid(columns: columns, spacing: 0) {
@@ -632,12 +613,6 @@ struct CalendarDateView: View {
     private var hasHolidays: Bool { !holidays.isEmpty }
     private var totalCount: Int { events.count + holidays.count }
 
-    private var gregorianDayFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter
-    }
-
     var body: some View {
         VStack(spacing: 1) {
             Text("\(lunarDate?.day ?? 0)")
@@ -645,7 +620,7 @@ struct CalendarDateView: View {
                 .foregroundColor(primaryTextColor)
                 .frame(height: 36)
 
-            Text(gregorianDayFormatter.string(from: date))
+            Text(SharedDateFormatters.dayNumber.string(from: date))
                 .font(.system(size: 9, weight: .regular))
                 .foregroundColor(secondaryTextColor)
 
@@ -658,13 +633,13 @@ struct CalendarDateView: View {
                         Text(title)
                             .font(.system(size: 7, weight: .medium))
                             .lineLimit(1)
-                            .foregroundColor(isHoliday ? .red : .accentColor)
+                            .foregroundColor(isHoliday ? .red : (isToday ? .white : .accentColor))
                             .padding(.horizontal, 2)
                             .padding(.vertical, 1)
                             .frame(maxWidth: .infinity)
                             .background(
                                 RoundedRectangle(cornerRadius: 2)
-                                    .fill(isHoliday ? Color.red.opacity(0.12) : Color.accentColor.opacity(0.12))
+                                    .fill(isHoliday ? Color.red.opacity(0.12) : (isToday ? Color.white.opacity(0.25) : Color.accentColor.opacity(0.12)))
                             )
                     }
                 }
@@ -725,7 +700,7 @@ struct CalendarDateView: View {
     // MARK: - Accessibility
 
     private var accessibilityLabel: String {
-        let gregorianDay = gregorianDayFormatter.string(from: date)
+        let gregorianDay = SharedDateFormatters.dayNumber.string(from: date)
         var label = "Date \(gregorianDay)"
         if let lunarDate = lunarDate {
             label += ", Lunar day \(lunarDate.day)"
@@ -823,11 +798,7 @@ struct EventDetailSheet: View {
                                     .foregroundColor(.secondary)
 
                                 Text(
-                                    DateFormatter.localizedString(
-                                        from: event.gregorianDate,
-                                        dateStyle: .full,
-                                        timeStyle: .none
-                                    )
+                                    SharedDateFormatters.fullDate.string(from: event.gregorianDate)
                                 )
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)

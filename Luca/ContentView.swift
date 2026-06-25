@@ -135,6 +135,7 @@ struct ContentView: View {
                 SettingsView(
                     settingsManager: settingsManager,
                     notificationManager: notificationManager,
+                    dataManager: dataManager,
                     reseedHolidays: { [dataManager, settingsManager] in
                         var settings = settingsManager.loadSettings()
                         settings.hasSeededPublicHolidays = false
@@ -339,6 +340,7 @@ struct ContentView: View {
             DeveloperSettingsView(
                 settingsManager: settingsManager,
                 notificationManager: notificationManager,
+                dataManager: dataManager,
                 reseedHolidays: reseedHolidaysClosure
             )
         }

@@ -22,13 +22,16 @@ class SettingsViewModel: ObservableObject {
     
     let settingsManager: SettingsManager
     private let notificationManager: NotificationManager
+    private let dataManager: DataManager
     private let reseedHolidays: (() async throws -> Void)?
     
     init(settingsManager: SettingsManager,
          notificationManager: NotificationManager,
+         dataManager: DataManager,
          reseedHolidays: (() async throws -> Void)? = nil) {
         self.settingsManager = settingsManager
         self.notificationManager = notificationManager
+        self.dataManager = dataManager
         self.reseedHolidays = reseedHolidays
         loadSettings()
         
@@ -87,6 +90,30 @@ class SettingsViewModel: ObservableObject {
         }
         
         isLoading = false
+    }
+    
+    /// Set or clear reminders for all events in a category (ignores individual settings)
+    func setCategoryReminders(category: EventCategory, enabled: Bool) async {
+        do {
+            let allEvents = try await dataManager.fetchAllEvents()
+            let targetEvents = allEvents.filter { $0.category == category }
+            for event in targetEvents {
+                if enabled {
+                    guard event.reminderSettings.isEmpty else { continue }
+                    event.reminderSettings = [.oneDayBefore]
+                } else {
+                    event.reminderSettings = []
+                }
+                try await dataManager.updateEvent(event)
+                if enabled {
+                    await notificationManager.updateReminders(for: event)
+                } else {
+                    notificationManager.cancelAllReminders(for: event.id)
+                }
+            }
+        } catch {
+            print("Failed to update reminders for \(category): \(error)")
+        }
     }
     
     // MARK: - Developer Actions

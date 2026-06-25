@@ -19,6 +19,9 @@ class DynamicReminderService {
     /// Data manager for accessing events
     private let dataManager: DataManager
     
+    /// Settings manager for checking notification preferences
+    private let settingsManager: SettingsManager
+    
     /// Timer for periodic reminder checks
     private var reminderUpdateTimer: Timer?
     
@@ -36,10 +39,12 @@ class DynamicReminderService {
     
     init(
         notificationManager: NotificationManager,
-        dataManager: DataManager
+        dataManager: DataManager,
+        settingsManager: SettingsManager
     ) {
         self.notificationManager = notificationManager
         self.dataManager = dataManager
+        self.settingsManager = settingsManager
     }
     
     deinit {
@@ -89,7 +94,15 @@ class DynamicReminderService {
             let dateRange = DateInterval(start: startDate, end: endDate)
             
             let events = try await dataManager.fetchEvents(for: dateRange)
-            let eventsWithReminders = events.filter { !$0.reminderSettings.isEmpty }
+            let settings = settingsManager.loadSettings()
+            let eventsWithReminders = events.filter { event in
+                guard !event.reminderSettings.isEmpty else { return false }
+                switch event.category {
+                case .cultural: return settings.culturalNotificationsEnabled
+                case .religious: return settings.religiousNotificationsEnabled
+                case .personal: return true
+                }
+            }
             
             for event in eventsWithReminders {
                 await notificationManager.updateReminders(for: event)

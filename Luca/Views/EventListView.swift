@@ -1,18 +1,18 @@
-//
-//  EventListView.swift
-//  Luca
-//
-//  Created by Kiro on 18/12/25.
-//
-
 import SwiftUI
+
+/// Filter mode for the event list
+enum EventFilter: Equatable {
+    case upcoming
+    case today
+    case category(EventCategory)
+}
 
 /// View for displaying and managing a list of events with search functionality
 struct EventListView: View {
     @ObservedObject var viewModel: EventViewModel
     @Environment(\.accessibilityManager) private var accessibilityManager
     @State private var searchText = ""
-    @State private var selectedCategory: EventCategory?
+    @State private var eventFilter: EventFilter = .today
     @State private var showingEventForm = false
     @State private var eventToEdit: Event?
     @State private var showingDeleteConfirmation = false
@@ -27,18 +27,22 @@ struct EventListView: View {
     }
     
     private var isUpcomingSelected: Bool {
-        selectedCategory == nil
+        if case .upcoming = eventFilter { return true }
+        return false
     }
     
     var filteredEvents: [Event] {
         var events = viewModel.events
         let now = Calendar.current.startOfDay(for: Date())
         
-        // Upcoming filter: only active when "Upcoming" chip is selected
-        if selectedCategory == nil {
+        switch eventFilter {
+        case .today:
             events = events.filter { event in
-                // Check if the event occurs on any day in the next 7 days
-                for dayOffset in 0..<7 {
+                event.occurs(on: now)
+            }
+        case .upcoming:
+            events = events.filter { event in
+                for dayOffset in 1..<8 {
                     if let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: now),
                        event.occurs(on: date) {
                         return true
@@ -46,27 +50,23 @@ struct EventListView: View {
                 }
                 return false
             }
+        case .category(let category):
+            events = events.filter { event in
+                event.category == category
+            }
         }
         
         // Filter by search text
         if !searchText.isEmpty {
             let query = searchText.lowercased()
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-
             events = events.filter { event in
                 let matchesTitleDescription = event.title.localizedCaseInsensitiveContains(query) ||
                     event.description.localizedCaseInsensitiveContains(query)
                 let matchesTags = event.tags.contains { $0.localizedCaseInsensitiveContains(query) }
                 let matchesLunarDate = String(format: String.localized(.lunarDateSearchFormat), event.lunarDate.day, event.lunarDate.month, event.lunarDate.traditionalYear).localizedCaseInsensitiveContains(query)
-                let matchesGregorian = dateFormatter.string(from: event.gregorianDate).localizedCaseInsensitiveContains(query)
+                let matchesGregorian = SharedDateFormatters.mediumDateVi.string(from: event.gregorianDate).localizedCaseInsensitiveContains(query)
                 return matchesTitleDescription || matchesTags || matchesLunarDate || matchesGregorian
             }
-        }
-        
-        // Filter by category
-        if let category = selectedCategory {
-            events = events.filter { $0.category == category }
         }
         
         // Deduplicate recurring events — show only one entry per ceremony base name
@@ -119,25 +119,32 @@ struct EventListView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     
-                    // Category Filter
-                    FlowLayout(spacing: 8) {
-                        CategoryFilterChip(
-                            category: nil,
-                            isSelected: selectedCategory == nil,
-                            action: { selectedCategory = nil }
-                        )
-                        
-                        ForEach(EventCategory.allCases, id: \.self) { category in
-                            CategoryFilterChip(
-                                category: category,
-                                isSelected: selectedCategory == category,
-                                action: {
-                                    selectedCategory = selectedCategory == category ? nil : category
-                                }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            FilterChip(
+                                filter: .today,
+                                isSelected: eventFilter == .today,
+                                action: { eventFilter = .today }
                             )
+                            
+                            FilterChip(
+                                filter: .upcoming,
+                                isSelected: eventFilter == .upcoming,
+                                action: { eventFilter = .upcoming }
+                            )
+                            
+                            ForEach(EventCategory.allCases, id: \.self) { category in
+                                FilterChip(
+                                    filter: .category(category),
+                                    isSelected: eventFilter == .category(category),
+                                    action: {
+                                        eventFilter = eventFilter == .category(category) ? .upcoming : .category(category)
+                                    }
+                                )
+                            }
                         }
                     }
-                    .padding(.horizontal)
+         
                 }
                 .padding()
                 .background(Color(.systemBackground))
@@ -152,23 +159,67 @@ struct EventListView: View {
                     EmptyEventsView(
                         hasEvents: !viewModel.events.isEmpty,
                         searchText: searchText,
-                        selectedCategory: selectedCategory,
+                        eventFilter: eventFilter,
                         onCreateEvent: { showingEventForm = true }
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List {
-                        ForEach(filteredEvents) { event in
-                            EventRowView(
-                                event: event,
-                                onTap: { editEvent(event) },
-                                onDelete: { deleteEvent(event) }
-                            )
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                            .listRowSeparator(.hidden)
+                List {
+                    ForEach(filteredEvents) { event in
+                        EventRowView(
+                            event: event,
+                            onTap: { editEvent(event) },
+                            onDelete: { deleteEvent(event) }
+                        )
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowSeparator(.hidden)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                                impactFeedback.impactOccurred()
+                                deleteEvent(event)
+                            } label: {
+                                Label(String.localized(.delete), systemImage: "trash")
+                            }
+                            .tint(.red)
+                            
+                            Button {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                impactFeedback.impactOccurred()
+                                editEvent(event)
+                            } label: {
+                                Label(String.localized(.edit), systemImage: "pencil")
+                            }
+                            .tint(.blue)
+                        }
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            if !event.reminderSettings.isEmpty {
+                                Button {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    Task {
+                                        await viewModel.toggleReminders(for: event)
+                                    }
+                                } label: {
+                                    Label(String.localized(.reminders), systemImage: "bell.slash")
+                                }
+                                .tint(.orange)
+                            } else {
+                                Button {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    Task {
+                                        await viewModel.toggleReminders(for: event)
+                                    }
+                                } label: {
+                                    Label(String.localized(.reminders), systemImage: "bell")
+                                }
+                                .tint(.orange)
+                            }
                         }
                     }
-                    .listStyle(PlainListStyle())
+                }
+                .listStyle(PlainListStyle())
                 }
             }
             .navigationTitle(String.localized(.events))
@@ -240,13 +291,6 @@ struct EventRowView: View {
     let event: Event
     let onTap: () -> Void
     let onDelete: () -> Void
-
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "vi")
-        return formatter
-    }
 
     var body: some View {
         Button(action: {
@@ -326,7 +370,7 @@ struct EventRowView: View {
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
 
-                            Text(dateFormatter.string(from: event.gregorianDate))
+                            Text(SharedDateFormatters.mediumDateVi.string(from: event.gregorianDate))
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundColor(.primary)
@@ -359,35 +403,46 @@ struct EventRowView: View {
     }
 }
 
-/// Category filter chip
-struct CategoryFilterChip: View {
-    let category: EventCategory?
+/// Filter chip
+struct FilterChip: View {
+    let filter: EventFilter
     let isSelected: Bool
     let action: () -> Void
-
+    
     private var iconName: String {
-        guard let category else { return "clock.fill" }
-        switch category {
-        case .personal: return "person.fill"
-        case .cultural: return "star.fill"
-        case .religious: return "book.fill"
+        switch filter {
+        case .today: return "sun.max.fill"
+        case .upcoming: return "clock.fill"
+        case .category(let category):
+            switch category {
+            case .personal: return "person.fill"
+            case .cultural: return "star.fill"
+            case .religious: return "book.fill"
+            }
         }
     }
-
+    
     private var chipColor: Color {
-        guard let category else { return .accentColor }
-        switch category {
-        case .personal: return .blue
-        case .cultural: return .purple
-        case .religious: return .indigo
+        switch filter {
+        case .today: return .orange
+        case .upcoming: return .accentColor
+        case .category(let category):
+            switch category {
+            case .personal: return .blue
+            case .cultural: return .purple
+            case .religious: return .indigo
+            }
         }
     }
-
+    
     private var label: String {
-        guard let category else { return String.localized(.upcomingEvents) }
-        return category.displayName
+        switch filter {
+        case .today: return String.localized(.today)
+        case .upcoming: return String.localized(.upcomingEvents)
+        case .category(let category): return category.displayName
+        }
     }
-
+    
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
@@ -398,7 +453,7 @@ struct CategoryFilterChip: View {
                     .fontWeight(.semibold)
             }
             .foregroundColor(isSelected ? .white : chipColor)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .background(
                 isSelected
@@ -415,7 +470,7 @@ struct CategoryFilterChip: View {
 struct EmptyEventsView: View {
     let hasEvents: Bool
     let searchText: String
-    let selectedCategory: EventCategory?
+    let eventFilter: EventFilter
     let onCreateEvent: () -> Void
     
     var body: some View {
@@ -461,24 +516,40 @@ struct EmptyEventsView: View {
     private var emptyStateTitle: String {
         if !searchText.isEmpty {
             return String.localized(.noResultsFound)
-        } else if selectedCategory != nil {
+        }
+        switch eventFilter {
+        case .today:
+            return String.localized(.noEventsToday)
+        case .upcoming:
+            return String.localized(.noEventsUpcoming)
+        case .category:
             return String.localized(.noEventsInCategory)
-        } else if hasEvents {
-            return String.localized(.noEventsYet)
-        } else {
-            return String.localized(.noEventsYet)
         }
     }
     
     private var emptyStateMessage: String {
         if !searchText.isEmpty {
             return String.localized(.noResultsMessage)
-        } else if let category = selectedCategory {
-            return String(format: String.localized(.noEventsInCategoryMessage), category.displayName)
-        } else if hasEvents {
-            return String.localized(.noEventsFilterMessage)
-        } else {
-            return String.localized(.createFirstEventMessage)
+        }
+        switch eventFilter {
+        case .today:
+            if hasEvents {
+                return String.localized(.noEventsFilterMessage)
+            } else {
+                return String.localized(.createFirstEventMessage)
+            }
+        case .upcoming:
+            if hasEvents {
+                return String.localized(.noEventsFilterMessage)
+            } else {
+                return String.localized(.createFirstEventMessage)
+            }
+        case .category(let category):
+            if hasEvents {
+                return String(format: String.localized(.noEventsInCategoryMessage), category.displayName)
+            } else {
+                return String.localized(.createFirstEventMessage)
+            }
         }
     }
 }

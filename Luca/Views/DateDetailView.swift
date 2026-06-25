@@ -21,18 +21,12 @@ struct DateDetailView: View {
         lunarCalendarService.convertToLunar(gregorian: date)
     }
     
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        return formatter
-    }
-    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Date Header
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(dateFormatter.string(from: date))
+                    Text(SharedDateFormatters.fullDate.string(from: date))
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     

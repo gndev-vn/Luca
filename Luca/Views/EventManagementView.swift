@@ -184,11 +184,7 @@ struct EventDetailView: View {
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                     
-                                    Text(DateFormatter.localizedString(
-                                        from: event.gregorianDate,
-                                        dateStyle: .full,
-                                        timeStyle: .none
-                                    ))
+                                    Text(SharedDateFormatters.fullDate.string(from: event.gregorianDate))
                                     .font(.subheadline)
                                     .fontWeight(.medium)
                                 }

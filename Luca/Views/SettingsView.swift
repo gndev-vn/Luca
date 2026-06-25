@@ -19,10 +19,12 @@ struct SettingsView: View {
     
     init(settingsManager: SettingsManager,
          notificationManager: NotificationManager,
+         dataManager: DataManager,
          reseedHolidays: (() async throws -> Void)? = nil) {
         self._viewModel = StateObject(wrappedValue: SettingsViewModel(
             settingsManager: settingsManager,
             notificationManager: notificationManager,
+            dataManager: dataManager,
             reseedHolidays: reseedHolidays
         ))
     }
@@ -46,6 +48,30 @@ struct SettingsView: View {
                             .foregroundColor(.orange)
                         Text(localized: .enableNotifications)
                     }
+                }
+                
+                if notificationsEnabled {
+                    Toggle(String.localized(.culturalNotifications), isOn: Binding(
+                        get: { viewModel.userSettings.culturalNotificationsEnabled },
+                        set: { newValue in
+                            var settings = viewModel.settingsManager.loadSettings()
+                            settings.culturalNotificationsEnabled = newValue
+                            viewModel.settingsManager.saveSettings(settings)
+                            viewModel.userSettings.culturalNotificationsEnabled = newValue
+                            Task { await viewModel.setCategoryReminders(category: .cultural, enabled: newValue) }
+                        }
+                    ))
+                    
+                    Toggle(String.localized(.religiousNotifications), isOn: Binding(
+                        get: { viewModel.userSettings.religiousNotificationsEnabled },
+                        set: { newValue in
+                            var settings = viewModel.settingsManager.loadSettings()
+                            settings.religiousNotificationsEnabled = newValue
+                            viewModel.settingsManager.saveSettings(settings)
+                            viewModel.userSettings.religiousNotificationsEnabled = newValue
+                            Task { await viewModel.setCategoryReminders(category: .religious, enabled: newValue) }
+                        }
+                    ))
                 }
             } footer: {
                 Text(String.localized(.enableNotificationsDescription))
@@ -98,7 +124,7 @@ struct SettingsView: View {
                         Label(String.localized(.developerOptions), systemImage: "wrench")
                     }
                 }
-                Button(String.localized(.resetToDefaults)) {
+                Button(String.localized(.resetToDefaults), systemImage: "arrow.counterclockwise") {
                     showResetConfirmation = true
                 }
                 .foregroundColor(.red)
@@ -171,6 +197,7 @@ struct SettingsView: View {
 #Preview {
     SettingsView(
         settingsManager: UserDefaultsSettingsManager(),
-        notificationManager: DefaultNotificationManager()
+        notificationManager: DefaultNotificationManager(),
+        dataManager: MockDataManager()
     )
 }
