@@ -17,6 +17,7 @@ struct CalendarView: View {
     @State private var selectedEvent: Event?
     @State private var showingDayEvents = false
     @State private var showingMonthPicker = false
+    @State private var slideForward = true // true = next month (slide left), false = prev month (slide right)
     @Environment(\.themeManager) private var themeManager
     @Environment(\.accessibilityManager) private var accessibilityManager
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -56,9 +57,15 @@ struct CalendarView: View {
                         lunarDateProvider: { date in viewModel.lunarDate(for: date) }
                     )
                     .frame(maxWidth: 480)
+                    .id(viewModel.currentDate)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: slideForward ? .trailing : .leading),
+                        removal: .move(edge: slideForward ? .leading : .trailing)
+                    ))
                     Spacer(minLength: 0)
                 }
             }
+            .animation(.easeInOut(duration: 0.25), value: viewModel.currentDate)
             .gesture(
                 DragGesture(minimumDistance: 30, coordinateSpace: .local)
                     .onEnded { value in
@@ -66,6 +73,7 @@ struct CalendarView: View {
                         let vertical = value.translation.height
                         if abs(horizontal) > abs(vertical) && abs(horizontal) > 50 {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            slideForward = horizontal < 0
                             if horizontal < 0 {
                                 viewModel.nextMonth()
                             } else {
