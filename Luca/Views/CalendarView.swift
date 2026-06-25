@@ -297,57 +297,65 @@ struct DateDetailBottomSheet: View {
         ScrollView {
             VStack(spacing: 0) {
                 // ── Header ──────────────────────────────────────────
-                VStack(spacing: 6) {
-                    if let lunarDate = lunarDate {
-                        Text("\(lunarDate.day)")
-                            .font(.system(size: 72, weight: .bold, design: .rounded))
+                HStack(spacing: 16) {
+                    // Circular day badge
+                    ZStack {
+                        Circle()
+                            .fill(Color(.secondarySystemBackground))
+                            .frame(width: 60, height: 60)
+                        Text(lunarDate.map { "\($0.day)" } ?? dayNumber)
+                            .font(.title)
+                            .fontWeight(.bold)
                             .foregroundColor(.primary)
-                    } else {
-                        Text(dayNumber)
-                            .font(.system(size: 72, weight: .bold, design: .rounded))
-                            .foregroundColor(.primary)
                     }
 
-                    if let lunarDate = lunarDate {
-                        Text(lunarMonthYearLine(lunarDate))
-                            .font(.title3)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let lunarDate = lunarDate {
+                            Text(lunarMonthYearLine(lunarDate))
+                                .font(.title3)
+                                .fontWeight(.semibold)
+
+                            Text(lunarDayLine(lunarDate))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            HStack(spacing: 6) {
+                                Text(String(format: String.localized(.correspondingGregorian), gregorianFormattedDate))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+
+                                if lunarDate.isLeapMonth {
+                                    Text(LocalizationService.leapMonthIndicator())
+                                        .font(.caption2)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.orange.opacity(0.15))
+                                        .cornerRadius(6)
+                                }
+                            }
+                        } else {
+                            Text(gregorianFormattedDate)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        }
                     }
 
-                    if let lunarDate = lunarDate {
-                        Text(lunarDayLine(lunarDate))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Text(String(format: String.localized(.correspondingGregorian), gregorianFormattedDate))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-
-                    if let lunarDate = lunarDate, lunarDate.isLeapMonth {
-                        Text(LocalizationService.leapMonthIndicator())
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.orange)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Color.orange.opacity(0.15))
-                            .cornerRadius(12)
-                    }
+                    Spacer()
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 24)
-                .padding(.bottom, 20)
-                .background(Color(.secondarySystemBackground))
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
 
                 Divider()
+                    .padding(.horizontal, 20)
 
                 // ── Event List ───────────────────────────────────────
                 if events.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "calendar.badge.checkmark")
-                            .font(.largeTitle)
+                            .font(.title2)
                             .foregroundColor(.secondary)
                         Text(String.localized(.noEventsOnDate))
                             .font(.subheadline)
@@ -359,10 +367,12 @@ struct DateDetailBottomSheet: View {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(events) { event in
                             DayEventRow(event: event)
+                                .padding(.horizontal, 20)
                                 .contentShape(Rectangle())
                                 .onTapGesture { selectedEvent = event }
                             if event.id != events.last?.id {
-                                Divider().padding(.leading, 36)
+                                Divider()
+                                    .padding(.leading, 56)
                             }
                         }
                     }
@@ -414,16 +424,26 @@ struct DayEventRow: View {
     let event: Event
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(event.isPublicHoliday ? Color.red : Color.accentColor)
-                .frame(width: 4, height: 44)
+        HStack(spacing: 14) {
+            // Category dot
+            Circle()
+                .fill(categoryColor)
+                .frame(width: 10, height: 10)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(event.title)
-                    .font(.body)
-                    .fontWeight(event.isPublicHoliday ? .semibold : .regular)
-                    .foregroundColor(.primary)
+                HStack(spacing: 8) {
+                    Text(event.title)
+                        .font(.body)
+                        .fontWeight(event.isPublicHoliday ? .semibold : .regular)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+
+                    if event.isPublicHoliday {
+                        Image(systemName: "star.fill")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    }
+                }
 
                 if !event.description.isEmpty {
                     Text(event.description)
@@ -435,20 +455,21 @@ struct DayEventRow: View {
                 HStack(spacing: 6) {
                     Text(event.category.displayName)
                         .font(.caption2)
-                        .foregroundColor(event.isPublicHoliday ? .red : .accentColor)
+                        .fontWeight(.medium)
+                        .foregroundColor(categoryColor)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(categoryColor.opacity(0.12))
+                        .cornerRadius(4)
 
                     if !event.tags.isEmpty {
-                        ForEach(event.tags.prefix(3), id: \.self) { tag in
+                        ForEach(event.tags.prefix(2), id: \.self) { tag in
                             Text(tag)
-                                .font(.caption2.weight(.medium))
-                                .foregroundColor(.accentColor)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
-                                .background(Color.accentColor.opacity(0.1))
-                                .cornerRadius(4)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
-                        if event.tags.count > 3 {
-                            Text("+\(event.tags.count - 3)")
+                        if event.tags.count > 2 {
+                            Text("+\(event.tags.count - 2)")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
@@ -457,9 +478,21 @@ struct DayEventRow: View {
             }
 
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary.opacity(0.5))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
+    }
+
+    private var categoryColor: Color {
+        if event.isPublicHoliday { return .red }
+        switch event.category {
+        case .cultural: return .purple
+        case .religious: return .indigo
+        case .personal: return .accentColor
+        }
     }
 }
 

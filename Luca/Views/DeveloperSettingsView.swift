@@ -3,8 +3,7 @@ import SwiftUI
 struct DeveloperSettingsView: View {
     @StateObject private var viewModel: SettingsViewModel
     @AppStorage("developer_mode_enabled") private var developerModeEnabled = false
-    @State private var showReseedConfirmation = false
-    @State private var showResetDevConfirmation = false
+    @State private var activeSheet: DevSettingsSheet?
     @State private var toastMessage = ""
     @State private var showToast = false
 
@@ -24,12 +23,12 @@ struct DeveloperSettingsView: View {
         Form {
             Section {
                 Button(String.localized(.reSeedHolidays)) {
-                    showReseedConfirmation = true
+                    activeSheet = .reseed
                 }
                 .foregroundColor(.orange)
 
                 Button(String.localized(.resetDeveloperMode)) {
-                    showResetDevConfirmation = true
+                    activeSheet = .resetDevMode
                 }
                 .foregroundColor(.red)
             } header: {
@@ -42,30 +41,38 @@ struct DeveloperSettingsView: View {
         }
         .navigationTitle(String.localized(.developer))
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showReseedConfirmation) {
-            ConfirmationBottomSheet(
-                title: String.localized(.reSeedTitle),
-                message: String.localized(.reseedingWarning),
-                buttonTitle: String.localized(.reSeed),
-                buttonRole: .destructive,
-                isPresented: $showReseedConfirmation
-            ) {
-                Task {
-                    await viewModel.reseedPublicHolidays()
-                    showToastMessage(viewModel.successMessage ?? String.localized(.holidaysReSeeded))
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .reseed:
+                ConfirmationBottomSheet(
+                    title: String.localized(.reSeedTitle),
+                    message: String.localized(.reseedingWarning),
+                    buttonTitle: String.localized(.reSeed),
+                    buttonRole: .destructive,
+                    isPresented: Binding(
+                        get: { activeSheet != nil },
+                        set: { if !$0 { activeSheet = nil } }
+                    )
+                ) {
+                    Task {
+                        await viewModel.reseedPublicHolidays()
+                        showToastMessage(viewModel.successMessage ?? String.localized(.holidaysReSeeded))
+                    }
                 }
-            }
-        }
-        .sheet(isPresented: $showResetDevConfirmation) {
-            ConfirmationBottomSheet(
-                title: String.localized(.resetDeveloperModeTitle),
-                message: String.localized(.resetDeveloperModeWarning),
-                buttonTitle: String.localized(.resetToDefaults),
-                buttonRole: .destructive,
-                isPresented: $showResetDevConfirmation
-            ) {
-                developerModeEnabled = false
-                showToastMessage(String.localized(.developerModeDisabled))
+            case .resetDevMode:
+                ConfirmationBottomSheet(
+                    title: String.localized(.resetDeveloperModeTitle),
+                    message: String.localized(.resetDeveloperModeWarning),
+                    buttonTitle: String.localized(.resetToDefaults),
+                    buttonRole: .destructive,
+                    isPresented: Binding(
+                        get: { activeSheet != nil },
+                        set: { if !$0 { activeSheet = nil } }
+                    )
+                ) {
+                    developerModeEnabled = false
+                    showToastMessage(String.localized(.developerModeDisabled))
+                }
             }
         }
         .toast(message: toastMessage, isShowing: showToast)
@@ -76,6 +83,18 @@ struct DeveloperSettingsView: View {
         showToast = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             showToast = false
+        }
+    }
+}
+
+private enum DevSettingsSheet: Identifiable {
+    case reseed
+    case resetDevMode
+    
+    var id: String {
+        switch self {
+        case .reseed: return "reseed"
+        case .resetDevMode: return "resetDevMode"
         }
     }
 }

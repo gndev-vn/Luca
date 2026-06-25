@@ -10,10 +10,7 @@ import SwiftUI
 /// Main event management interface with selection and context menus
 struct EventManagementView: View {
     @StateObject private var eventViewModel: EventViewModel
-    @State private var selectedEvent: Event?
     @State private var showingEventForm = false
-    @State private var showingDeleteConfirmation = false
-    @State private var eventToDelete: Event?
     
     private let lunarCalendarService: LunarCalendarService
     private let dataManager: DataManager
@@ -52,27 +49,6 @@ struct EventManagementView: View {
                 lunarCalendarService: lunarCalendarService
             )
         }
-        .sheet(item: $selectedEvent) { event in
-            EventDetailView(
-                event: event,
-                viewModel: eventViewModel,
-                lunarCalendarService: lunarCalendarService
-            )
-        }
-        .alert(String.localized(.deleteEventConfirmation), isPresented: $showingDeleteConfirmation) {
-            Button(String.localized(.cancel), role: .cancel) { }
-            Button(String.localized(.delete), role: .destructive) {
-                if let event = eventToDelete {
-                    Task {
-                        await eventViewModel.deleteEvent(event)
-                    }
-                }
-            }
-        } message: {
-            if let event = eventToDelete {
-                Text(String(format: String.localized(.deleteEventMessage), event.title))
-            }
-        }
     }
 }
 /// Event detail view with edit and delete options
@@ -80,8 +56,7 @@ struct EventDetailView: View {
     let event: Event
     @ObservedObject var viewModel: EventViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var showingEditForm = false
-    @State private var showingDeleteConfirmation = false
+    @State private var activeSheet: DetailViewSheet?
     
     private let lunarCalendarService: LunarCalendarService
     
@@ -248,11 +223,11 @@ struct EventDetailView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        Button(action: { showingEditForm = true }) {
+                        Button(action: { activeSheet = .editForm }) {
                             Label(String.localized(.edit), systemImage: "pencil")
                         }
                         
-                        Button(role: .destructive, action: { showingDeleteConfirmation = true }) {
+                        Button(role: .destructive, action: { activeSheet = .deleteConfirmation }) {
                             Label(String.localized(.delete), systemImage: "trash")
                         }
                     } label: {
@@ -260,27 +235,47 @@ struct EventDetailView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingEditForm) {
-                EventFormView(
-                    viewModel: viewModel,
-                    event: event,
-                    lunarCalendarService: lunarCalendarService
-                )
-            }
-            .alert(String.localized(.deleteEventConfirmation), isPresented: $showingDeleteConfirmation) {
-                Button(String.localized(.cancel), role: .cancel) { }
-                Button(String.localized(.delete), role: .destructive) {
-                    Task {
-                        await viewModel.deleteEvent(event)
-                        dismiss()
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .editForm:
+                    EventFormView(
+                        viewModel: viewModel,
+                        event: event,
+                        lunarCalendarService: lunarCalendarService
+                    )
+                case .deleteConfirmation:
+                    ConfirmationBottomSheet(
+                        title: String.localized(.deleteEventConfirmation),
+                        message: String(format: String.localized(.deleteEventMessage), event.title),
+                        buttonTitle: String.localized(.delete),
+                        buttonRole: .destructive,
+                        isPresented: Binding(
+                            get: { activeSheet != nil },
+                            set: { if !$0 { activeSheet = nil } }
+                        )
+                    ) {
+                        Task {
+                            await viewModel.deleteEvent(event)
+                            dismiss()
+                        }
                     }
                 }
-            } message: {
-                Text(String(format: String.localized(.deleteEventMessage), event.title))
             }
         }
     }
     
+}
+
+private enum DetailViewSheet: Identifiable {
+    case editForm
+    case deleteConfirmation
+    
+    var id: String {
+        switch self {
+        case .editForm: return "editForm"
+        case .deleteConfirmation: return "deleteConfirmation"
+        }
+    }
 }
 
 #Preview("Event Management") {

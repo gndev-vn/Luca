@@ -13,10 +13,7 @@ struct EventListView: View {
     @Environment(\.accessibilityManager) private var accessibilityManager
     @State private var searchText = ""
     @State private var eventFilter: EventFilter = .today
-    @State private var showingEventForm = false
-    @State private var eventToEdit: Event?
-    @State private var showingDeleteConfirmation = false
-    @State private var eventToDelete: Event?
+    @State private var activeSheet: EventListSheet?
     
     private let lunarCalendarService: LunarCalendarService
     
@@ -160,7 +157,7 @@ struct EventListView: View {
                         hasEvents: !viewModel.events.isEmpty,
                         searchText: searchText,
                         eventFilter: eventFilter,
-                        onCreateEvent: { showingEventForm = true }
+                        onCreateEvent: { activeSheet = .createForm }
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -234,31 +231,34 @@ struct EventListView: View {
             .task {
                 await viewModel.loadEvents()
             }
-            .sheet(isPresented: $showingEventForm) {
-                EventFormView(
-                    viewModel: viewModel,
-                    lunarCalendarService: lunarCalendarService
-                )
-            }
-            .sheet(item: $eventToEdit) { event in
-                EventFormView(
-                    viewModel: viewModel,
-                    event: event,
-                    lunarCalendarService: lunarCalendarService
-                )
-            }
-            .alert(String.localized(.deleteEventConfirmation), isPresented: $showingDeleteConfirmation) {
-                Button(String.localized(.cancel), role: .cancel) { }
-                Button(String.localized(.delete), role: .destructive) {
-                    if let event = eventToDelete {
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .createForm:
+                    EventFormView(
+                        viewModel: viewModel,
+                        lunarCalendarService: lunarCalendarService
+                    )
+                case .editForm(let event):
+                    EventFormView(
+                        viewModel: viewModel,
+                        event: event,
+                        lunarCalendarService: lunarCalendarService
+                    )
+                case .deleteConfirmation(let event):
+                    ConfirmationBottomSheet(
+                        title: String.localized(.deleteEventConfirmation),
+                        message: String(format: String.localized(.deleteEventMessage), event.title),
+                        buttonTitle: String.localized(.delete),
+                        buttonRole: .destructive,
+                        isPresented: Binding(
+                            get: { activeSheet != nil },
+                            set: { if !$0 { activeSheet = nil } }
+                        )
+                    ) {
                         Task {
                             await viewModel.deleteEvent(event)
                         }
                     }
-                }
-            } message: {
-                if let event = eventToDelete {
-                    Text(String(format: String.localized(.deleteEventMessage), event.title))
                 }
             }
     }
@@ -266,12 +266,11 @@ struct EventListView: View {
     // MARK: - Helper Methods
     
     private func editEvent(_ event: Event) {
-        eventToEdit = event
+        activeSheet = .editForm(event)
     }
     
     private func deleteEvent(_ event: Event) {
-        eventToDelete = event
-        showingDeleteConfirmation = true
+        activeSheet = .deleteConfirmation(event)
     }
     
     /// Strip month suffix from ceremony event titles so all monthly variants collapse to one entry
@@ -283,6 +282,20 @@ struct EventListView: View {
             }
         }
         return title
+    }
+}
+
+enum EventListSheet: Identifiable {
+    case createForm
+    case editForm(Event)
+    case deleteConfirmation(Event)
+    
+    var id: String {
+        switch self {
+        case .createForm: return "createForm"
+        case .editForm(let event): return "editForm-\(event.id)"
+        case .deleteConfirmation(let event): return "deleteConfirmation-\(event.id)"
+        }
     }
 }
 

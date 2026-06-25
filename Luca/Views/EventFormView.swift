@@ -522,10 +522,16 @@ struct EventFormView: View {
                     .disabled(isSaving)
                 }
             }
-            .alert(String.localized(.validationError), isPresented: $showingValidationError) {
-                Button(String.localized(.done), role: .cancel) { }
-            } message: {
-                Text(validationErrors.joined(separator: "\n"))
+            .sheet(isPresented: $showingValidationError) {
+                ConfirmationBottomSheet(
+                    title: String.localized(.validationError),
+                    message: validationErrors.joined(separator: "\n"),
+                    buttonTitle: String.localized(.done),
+                    buttonRole: .cancel,
+                    showCancel: false,
+                    isPresented: $showingValidationError,
+                    action: {}
+                )
             }
         }
     }
