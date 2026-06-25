@@ -134,20 +134,18 @@ struct SettingsView: View {
                 Text(String.localized(.resetSettingsDescription))
                     .foregroundColor(.secondary)
             }
-            .confirmationDialog(
-                String.localized(.resetAllSettingsTitle),
-                isPresented: $showResetConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button(String.localized(.resetToDefaults), role: .destructive) {
+            .sheet(isPresented: $showResetConfirmation) {
+                ConfirmationBottomSheet(
+                    title: String.localized(.resetAllSettingsTitle),
+                    message: String.localized(.resetAllSettingsWarning),
+                    buttonTitle: String.localized(.resetToDefaults),
+                    buttonRole: .destructive,
+                    isPresented: $showResetConfirmation
+                ) {
                     let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
                     impactFeedback.impactOccurred()
-
                     viewModel.resetToDefaults()
                 }
-                Button(String.localized(.cancel), role: .cancel) {}
-            } message: {
-                Text(String.localized(.resetAllSettingsWarning))
             }
         }
         .navigationTitle(localized: .settings)

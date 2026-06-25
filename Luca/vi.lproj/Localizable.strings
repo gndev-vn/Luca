@@ -321,11 +321,11 @@
 // Developer settings
 "developer" = "Nhà phát triển";
 "developer_options" = "Tùy chọn nhà phát triển";
-"re_seed_holidays" = "Chèn lại ngày lễ";
-"re_seed" = "Chèn lại";
-"re_seed_title" = "Chỉnh sửa và cập nhật lại tất cả sự kiện và lễ (trừ sự kiện cá nhân)?";
-"reseeding_description" = "Chỉnh sửa và cập nhật lại sẽ xóa tất cả sự kiện và tạo lại ngày lễ từ mẫu có sẵn.";
-"reseeding_warning" = "Thao tác này sẽ xóa tất cả sự kiện hiện có và tạo lại các sự kiện theo văn hoá Việt Nam. Lưu ý, thao tác này không thể đảo ngược.";
+"re_seed_holidays" = "Cập nhật lại các sự kiện mặc định";
+"re_seed" = "Cập nhật lại";
+"re_seed_title" = "Chỉnh sửa và cập nhật lại tất cả sự kiện, trừ sự kiện cá nhân?";
+"reseeding_description" = "Chỉnh sửa và cập nhật lại sẽ xóa tất cả sự kiện mặc định và tạo lại các sự kiện mặc định từ mẫu có sẵn.";
+"reseeding_warning" = "Thao tác này sẽ xóa tất cả sự kiện mặc định hiện có và tạo lại các sự kiện theo văn hoá Việt Nam. Lưu ý, thao tác này không thể đảo ngược.";
 "holidays_re_seeded" = "Đã chỉnh sửa và cập nhật lại ngày lễ";
 "holidays_re_seeded_success" = "Đã chỉnh sửa và cập nhật lại ngày lễ thành công";
 "failed_to_re_seed" = "Chỉnh sửa và cập nhật lại thất bại";

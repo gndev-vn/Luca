@@ -30,36 +30,13 @@ class EventViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            var allEvents = try await dataManager.fetchAllEvents()
-            allEvents.append(contentsOf: generateCeremonyEvents())
+            let allEvents = try await dataManager.fetchAllEvents()
             events = allEvents
         } catch {
             errorMessage = error.localizedDescription
         }
         
         isLoading = false
-    }
-    
-    /// Generate virtual events for ceremonies not stored in Core Data
-    private func generateCeremonyEvents() -> [Event] {
-        let today = Date()
-        let lunar = LunarDate.fromGregorian(today)
-        let vietnameseMonths = ["Giêng", "Hai", "Ba", "Tư", "Năm", "Sáu", "Bảy", "Tám", "Chín", "Mười", "Mười Một", "Chạp"]
-        
-        let ceremonyMonth = lunar.month
-        let ceremonyLunar = LunarDate(year: lunar.year, month: ceremonyMonth, day: 1, isLeapMonth: lunar.isLeapMonth)
-        
-        let event = Event(
-            id: UUID(uuidString: "00000000-0000-0000-0000-0000000000c1")!,
-            title: "Cúng Mồng Một",
-            description: "Cúng Mồng Một (ngày cuối tháng và mồng 1) — lễ cúng đầu tháng, diễn ra vào tối ngày cuối tháng và cả ngày mồng 1 mỗi tháng âm lịch.",
-            lunarDate: ceremonyLunar,
-            category: .cultural,
-            isPublicHoliday: false,
-            recurrence: .monthly,
-            duration: 1
-        )
-        return [event]
     }
     
     /// Create a new event

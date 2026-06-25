@@ -75,56 +75,6 @@ class CalendarViewModel: ObservableObject {
     private func applyEvents(allEvents: [Event]) {
         publicHolidays = allEvents.filter { $0.isPublicHoliday }
         events = allEvents.filter { !$0.isPublicHoliday }
-        updateCeremonyEvents()
-    }
-
-    /// Pre-compute Cúng Mồng Một ceremony events for the current display month
-    /// and merge them into the events array so the grid shows them.
-    private func updateCeremonyEvents() {
-        var ceremonyEvents: [Event] = []
-
-        guard let currentLunar = currentLunarDate else { return }
-
-        // 1. Ceremony for the current month → shows on last day of prev month and first day of this month
-        do {
-            let ev = Event(
-                title: "Cúng Mồng Một",
-                description: "Cúng Mồng Một (ngày cuối tháng và mồng 1) — lễ cúng đầu tháng, diễn ra vào tối ngày cuối tháng và cả ngày mồng 1 mỗi tháng âm lịch.",
-                lunarDate: LunarDate(year: currentLunar.year, month: currentLunar.month, day: 1, isLeapMonth: currentLunar.isLeapMonth),
-                category: .cultural,
-                isPublicHoliday: false,
-                recurrence: .none,
-                duration: 1,
-                ceremonyMonth: currentLunar.month
-            )
-            ceremonyEvents.append(ev)
-        }
-
-        // 2. Ceremony for the next month → shows on last day of this month and first day of next month
-        let nextMonth: Int
-        let nextMonthYear: Int
-        if currentLunar.month == 12 {
-            nextMonth = 1
-            nextMonthYear = currentLunar.year + 1
-        } else {
-            nextMonth = currentLunar.month + 1
-            nextMonthYear = currentLunar.year
-        }
-        do {
-            let ev = Event(
-                title: "Cúng Mồng Một",
-                description: "Cúng Mồng Một (ngày cuối tháng và mồng 1) — lễ cúng đầu tháng, diễn ra vào tối ngày cuối tháng và cả ngày mồng 1 mỗi tháng âm lịch.",
-                lunarDate: LunarDate(year: nextMonthYear, month: nextMonth, day: 1, isLeapMonth: false),
-                category: .cultural,
-                isPublicHoliday: false,
-                recurrence: .none,
-                duration: 1,
-                ceremonyMonth: nextMonth
-            )
-            ceremonyEvents.append(ev)
-        }
-
-        events = (events.filter { $0.title != "Cúng Mồng Một" }) + ceremonyEvents
     }
 
     /// Navigate to the next month
@@ -137,7 +87,6 @@ class CalendarViewModel: ObservableObject {
             nextLunar = LunarDate(year: currentLunar.year, month: currentLunar.month + 1, day: 1, isLeapMonth: false)
         }
         currentDate = lunarCalendarService.convertToGregorian(lunar: nextLunar)
-        updateCeremonyEvents()
     }
 
     /// Navigate to the previous month
@@ -150,7 +99,6 @@ class CalendarViewModel: ObservableObject {
             prevLunar = LunarDate(year: currentLunar.year, month: currentLunar.month - 1, day: 1, isLeapMonth: false)
         }
         currentDate = lunarCalendarService.convertToGregorian(lunar: prevLunar)
-        updateCeremonyEvents()
     }
 
     /// Select a specific date — navigates to its lunar month if needed
@@ -163,7 +111,6 @@ class CalendarViewModel: ObservableObject {
         if dateLunar.month != currentLunar.month || dateLunar.year != currentLunar.year || dateLunar.isLeapMonth != currentLunar.isLeapMonth {
             let firstOfMonth = LunarDate(year: dateLunar.year, month: dateLunar.month, day: 1, isLeapMonth: dateLunar.isLeapMonth)
             currentDate = lunarCalendarService.convertToGregorian(lunar: firstOfMonth)
-            updateCeremonyEvents()
         }
     }
 

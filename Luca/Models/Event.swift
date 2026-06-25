@@ -123,21 +123,22 @@ class Event: ObservableObject, Identifiable, Codable {
         let calendar = Calendar.current
         let target = calendar.startOfDay(for: date)
         
-        // Ceremony events span month boundaries — check ceremony month first
-        if let ceremonyMonth {
+        // ceremonyMonth isn't persisted to Core Data — derive it for known ceremony events
+        let isCeremony = ceremonyMonth != nil || title == "Cúng Mồng Một"
+        if isCeremony {
+            let activeMonth = ceremonyMonth ?? lunarDate.month
             let targetLunar = LunarDate.fromGregorian(date)
-            let prevMonth = ceremonyMonth == 1 ? 12 : ceremonyMonth - 1
-            let prevMonthDays = LunarCalendarConverter.daysInLunarMonth(
-                year: targetLunar.year,
-                month: prevMonth,
-                isLeapMonth: false
-            )
-            // Show on last day of previous month (ceremony start) — prev month is always regular
-            if !targetLunar.isLeapMonth && targetLunar.day == prevMonthDays && targetLunar.month == prevMonth {
-                return true
+            let prevMonth = activeMonth == 1 ? 12 : activeMonth - 1
+
+            if targetLunar.month == prevMonth,
+               let nextDate = calendar.date(byAdding: .day, value: 1, to: date) {
+                let nextLunar = LunarDate.fromGregorian(nextDate)
+                if nextLunar.day == 1 && nextLunar.month == activeMonth {
+                    return true
+                }
             }
-            // Show on first day of ceremony month — matches the event's leap status
-            if targetLunar.day == 1 && targetLunar.month == ceremonyMonth && targetLunar.isLeapMonth == lunarDate.isLeapMonth {
+
+            if targetLunar.day == 1 && targetLunar.month == activeMonth && targetLunar.isLeapMonth == lunarDate.isLeapMonth {
                 return true
             }
             return false

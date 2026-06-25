@@ -83,7 +83,7 @@ class HolidayService {
     }
     
     /// Seed public holidays to Core Data — one event per template as yearly recurring.
-    /// Cúng Mồng Một is NOT seeded; it is generated dynamically by the calendar view model.
+    /// Also seeds 12 "Cúng Mồng Một" events (one per lunar month) with ceremonyMonth.
     func seedPublicHolidays(to dataManager: DataManager, from fromYear: Int, to toYear: Int) async throws {
         try await dataManager.deleteEvents(withTitles: Self.preseededEventNames)
         
@@ -114,7 +114,25 @@ class HolidayService {
             )
         }
 
-        try await dataManager.saveEvents(templateEvents)
+        // Seed 12 "Cúng Mồng Một" events — one per lunar month with ceremonyMonth
+        let mongMotDescription = "Cúng Mồng Một (ngày cuối tháng và mồng 1) — lễ cúng đầu tháng, diễn ra vào tối ngày cuối tháng và cả ngày mồng 1 mỗi tháng âm lịch."
+        let nowYear = LunarDate.fromGregorian(now).year
+        let mongMotEvents: [Event] = (1...12).map { month in
+            let lunarDate = LunarDate(year: nowYear, month: month, day: 1)
+            return Event(
+                title: "Cúng Mồng Một",
+                description: mongMotDescription,
+                lunarDate: lunarDate,
+                category: .cultural,
+                isPublicHoliday: false,
+                recurrence: .yearly,
+                reminderSettings: [],
+                duration: 1,
+                ceremonyMonth: month
+            )
+        }
+
+        try await dataManager.saveEvents(templateEvents + mongMotEvents)
     }
     
     /// Pick the lunar year whose Gregorian occurrence is closest to (and preferably after) `targetDate`.

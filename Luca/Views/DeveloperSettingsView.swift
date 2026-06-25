@@ -42,29 +42,31 @@ struct DeveloperSettingsView: View {
         }
         .navigationTitle(String.localized(.developer))
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog(String.localized(.reSeedTitle),
-                            isPresented: $showReseedConfirmation,
-                            titleVisibility: .visible) {
-            Button(String.localized(.reSeed), role: .destructive) {
+        .sheet(isPresented: $showReseedConfirmation) {
+            ConfirmationBottomSheet(
+                title: String.localized(.reSeedTitle),
+                message: String.localized(.reseedingWarning),
+                buttonTitle: String.localized(.reSeed),
+                buttonRole: .destructive,
+                isPresented: $showReseedConfirmation
+            ) {
                 Task {
                     await viewModel.reseedPublicHolidays()
                     showToastMessage(viewModel.successMessage ?? String.localized(.holidaysReSeeded))
                 }
             }
-            Button(String.localized(.cancel), role: .cancel) {}
-        } message: {
-            Text(String.localized(.reseedingWarning))
         }
-        .confirmationDialog(String.localized(.resetDeveloperModeTitle),
-                            isPresented: $showResetDevConfirmation,
-                            titleVisibility: .visible) {
-            Button(String.localized(.resetToDefaults), role: .destructive) {
+        .sheet(isPresented: $showResetDevConfirmation) {
+            ConfirmationBottomSheet(
+                title: String.localized(.resetDeveloperModeTitle),
+                message: String.localized(.resetDeveloperModeWarning),
+                buttonTitle: String.localized(.resetToDefaults),
+                buttonRole: .destructive,
+                isPresented: $showResetDevConfirmation
+            ) {
                 developerModeEnabled = false
                 showToastMessage(String.localized(.developerModeDisabled))
             }
-            Button(String.localized(.cancel), role: .cancel) {}
-        } message: {
-            Text(String.localized(.resetDeveloperModeWarning))
         }
         .toast(message: toastMessage, isShowing: showToast)
     }
