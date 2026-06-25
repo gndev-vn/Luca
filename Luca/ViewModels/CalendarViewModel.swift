@@ -130,39 +130,27 @@ class CalendarViewModel: ObservableObject {
     /// Navigate to the next month
     func nextMonth() {
         guard let currentLunar = currentLunarDate else { return }
-        let calendar = Calendar.current
-
-        var cursor = currentDate
-        for _ in 1...60 {
-            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: cursor) else { break }
-            cursor = nextDay
-            let lunar = lunarCalendarService.convertToLunar(gregorian: cursor)
-            if lunar.month != currentLunar.month || lunar.year != currentLunar.year || lunar.isLeapMonth != currentLunar.isLeapMonth {
-                let firstDay = LunarDate(year: lunar.year, month: lunar.month, day: 1, isLeapMonth: lunar.isLeapMonth)
-                currentDate = lunarCalendarService.convertToGregorian(lunar: firstDay)
-                updateCeremonyEvents()
-                return
-            }
+        let nextLunar: LunarDate
+        if currentLunar.month == 12 {
+            nextLunar = LunarDate(year: currentLunar.year + 1, month: 1, day: 1, isLeapMonth: false)
+        } else {
+            nextLunar = LunarDate(year: currentLunar.year, month: currentLunar.month + 1, day: 1, isLeapMonth: false)
         }
+        currentDate = lunarCalendarService.convertToGregorian(lunar: nextLunar)
+        updateCeremonyEvents()
     }
 
     /// Navigate to the previous month
     func previousMonth() {
         guard let currentLunar = currentLunarDate else { return }
-        let calendar = Calendar.current
-
-        var cursor = currentDate
-        for _ in 1...60 {
-            guard let prevDay = calendar.date(byAdding: .day, value: -1, to: cursor) else { break }
-            cursor = prevDay
-            let lunar = lunarCalendarService.convertToLunar(gregorian: cursor)
-            if lunar.month != currentLunar.month || lunar.year != currentLunar.year || lunar.isLeapMonth != currentLunar.isLeapMonth {
-                let firstDay = LunarDate(year: lunar.year, month: lunar.month, day: 1, isLeapMonth: lunar.isLeapMonth)
-                currentDate = lunarCalendarService.convertToGregorian(lunar: firstDay)
-                updateCeremonyEvents()
-                return
-            }
+        let prevLunar: LunarDate
+        if currentLunar.month == 1 {
+            prevLunar = LunarDate(year: currentLunar.year - 1, month: 12, day: 1, isLeapMonth: false)
+        } else {
+            prevLunar = LunarDate(year: currentLunar.year, month: currentLunar.month - 1, day: 1, isLeapMonth: false)
         }
+        currentDate = lunarCalendarService.convertToGregorian(lunar: prevLunar)
+        updateCeremonyEvents()
     }
 
     /// Select a specific date — navigates to its lunar month if needed

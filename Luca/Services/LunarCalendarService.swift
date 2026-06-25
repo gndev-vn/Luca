@@ -42,8 +42,8 @@ class DefaultLunarCalendarService: LunarCalendarService {
     
     // MARK: - Private Properties
     
-    /// Chinese calendar instance for conversions
-    private let chineseCalendar = Calendar(identifier: .chinese)
+    /// Lunar calendar instance for conversions
+    private let lunarCalendar = Calendar(identifier: .chinese)
     
     /// Gregorian calendar instance for reference
     private let gregorianCalendar = Calendar(identifier: .gregorian)

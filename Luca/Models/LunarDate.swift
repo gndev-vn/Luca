@@ -14,6 +14,8 @@ struct LunarDate: Equatable, Codable {
     let day: Int         // Lunar day (1-30)
     let isLeapMonth: Bool
 
+    private static let lunarCalendar = Calendar(identifier: .chinese)
+
     /// Initialize a new LunarDate
     /// - Parameters:
     ///   - year: The lunar calendar year (e.g., 41 for 2024 CE)
@@ -55,17 +57,12 @@ struct LunarDate: Equatable, Codable {
     /// Convert this lunar date to Gregorian calendar using iOS native APIs
     /// - Returns: The corresponding Gregorian Date
     func toGregorian() -> Date {
-        let chineseCalendar = Calendar(identifier: .chinese)
-        
-        // Create date components for the Chinese calendar (using iOS Chinese year directly)
         var components = DateComponents()
-        components.calendar = chineseCalendar
+        components.calendar = Self.lunarCalendar
         components.year = year
         components.month = month
         components.day = day
         components.isLeapMonth = isLeapMonth
-        
-        // Convert to Date using iOS native conversion
         return components.date ?? Date()
     }
     
@@ -75,11 +72,7 @@ struct LunarDate: Equatable, Codable {
     ///   - country: The country context for lunar calendar calculations (optional)
     /// - Returns: The corresponding LunarDate
     static func fromGregorian(_ date: Date) -> LunarDate {
-        let chineseCalendar = Calendar(identifier: .chinese)
-        
-        // Extract Chinese calendar components from the Gregorian date
-        let components = chineseCalendar.dateComponents([.year, .month, .day, .isLeapMonth], from: date)
-        
+        let components = lunarCalendar.dateComponents([.year, .month, .day, .isLeapMonth], from: date)
         return LunarDate(
             year: components.year ?? 1,
             month: components.month ?? 1,
@@ -119,21 +112,21 @@ struct LunarDate: Equatable, Codable {
 /// Lunar Calendar Converter using iOS native Calendar APIs
 class LunarCalendarConverter {
     
-    private static let chineseCalendar = Calendar(identifier: .chinese)
+    private static let lunarCalendar = Calendar(identifier: .chinese)
     private static let gregorianCalendar = Calendar(identifier: .gregorian)
     
     // MARK: - Conversion Methods
     
     /// Convert lunar date to Gregorian date using iOS native APIs
     /// - Parameters:
-    ///   - year: iOS Chinese calendar year (e.g., 41 for 2024 CE)
+    ///   - year: iOS lunar calendar year (e.g., 41 for 2024 CE)
     ///   - month: Lunar month (1-12)
     ///   - day: Lunar day (1-30)
     ///   - isLeapMonth: Whether this is a leap month
     /// - Returns: The corresponding Gregorian Date
     static func lunarToGregorian(year: Int, month: Int, day: Int, isLeapMonth: Bool) -> Date {
         var components = DateComponents()
-        components.calendar = chineseCalendar
+        components.calendar = lunarCalendar
         components.year = year
         components.month = month
         components.day = day
@@ -146,10 +139,10 @@ class LunarCalendarConverter {
     /// - Parameter date: The Gregorian date to convert
     /// - Returns: The corresponding LunarDate
     static func gregorianToLunar(date: Date) -> LunarDate {
-        let components = chineseCalendar.dateComponents([.year, .month, .day, .isLeapMonth], from: date)
+        let components = lunarCalendar.dateComponents([.year, .month, .day, .isLeapMonth], from: date)
         
         return LunarDate(
-            year: components.year ?? 1,  // Use iOS Chinese calendar year directly
+            year: components.year ?? 1,  // Use iOS lunar calendar year directly
             month: components.month ?? 1,
             day: components.day ?? 1,
             isLeapMonth: components.isLeapMonth ?? false
@@ -159,13 +152,13 @@ class LunarCalendarConverter {
     // MARK: - Helper Methods
     
     /// Check if a lunar year has a leap month using iOS native APIs
-    /// - Parameter year: The iOS Chinese calendar year to check (e.g., 41 for 2024 CE)
+    /// - Parameter year: The iOS lunar calendar year to check (e.g., 41 for 2024 CE)
     /// - Returns: True if the year has a leap month
     static func hasLeapMonth(_ year: Int) -> Bool {
         // Create a date for the beginning of the lunar year
         var startComponents = DateComponents()
-        startComponents.calendar = chineseCalendar
-        startComponents.year = year  // Use iOS Chinese calendar year directly
+        startComponents.calendar = lunarCalendar
+        startComponents.year = year  // Use iOS lunar calendar year directly
         startComponents.month = 1
         startComponents.day = 1
         
@@ -173,7 +166,7 @@ class LunarCalendarConverter {
         
         // Create a date for the beginning of the next lunar year
         var endComponents = DateComponents()
-        endComponents.calendar = chineseCalendar
+        endComponents.calendar = lunarCalendar
         endComponents.year = year + 1
         endComponents.month = 1
         endComponents.day = 1
@@ -183,13 +176,13 @@ class LunarCalendarConverter {
         // Check each month in the year to see if any is a leap month
         var currentDate = startDate
         while currentDate < endDate {
-            let components = chineseCalendar.dateComponents([.isLeapMonth], from: currentDate)
+            let components = lunarCalendar.dateComponents([.isLeapMonth], from: currentDate)
             if components.isLeapMonth == true {
                 return true
             }
             
             // Move to next month
-            guard let nextMonth = chineseCalendar.date(byAdding: .month, value: 1, to: currentDate) else {
+            guard let nextMonth = lunarCalendar.date(byAdding: .month, value: 1, to: currentDate) else {
                 break
             }
             currentDate = nextMonth
@@ -199,13 +192,13 @@ class LunarCalendarConverter {
     }
     
     /// Get leap month information for a year using iOS native APIs
-    /// - Parameter year: The iOS Chinese calendar year (e.g., 41 for 2024 CE)
+    /// - Parameter year: The iOS lunar calendar year (e.g., 41 for 2024 CE)
     /// - Returns: Tuple containing leap month info (hasLeap, leapMonth, leapDays)
     static func getLeapMonthInfo(_ year: Int) -> (hasLeap: Bool, leapMonth: Int, leapDays: Int) {
         // Create a date for the beginning of the lunar year
         var startComponents = DateComponents()
-        startComponents.calendar = chineseCalendar
-        startComponents.year = year  // Use iOS Chinese calendar year directly
+        startComponents.calendar = lunarCalendar
+        startComponents.year = year  // Use iOS lunar calendar year directly
         startComponents.month = 1
         startComponents.day = 1
         
@@ -215,7 +208,7 @@ class LunarCalendarConverter {
         
         // Create a date for the beginning of the next lunar year
         var endComponents = DateComponents()
-        endComponents.calendar = chineseCalendar
+        endComponents.calendar = lunarCalendar
         endComponents.year = year + 1
         endComponents.month = 1
         endComponents.day = 1
@@ -227,20 +220,20 @@ class LunarCalendarConverter {
         // Check each month in the year to find the leap month
         var currentDate = startDate
         while currentDate < endDate {
-            let components = chineseCalendar.dateComponents([.month, .isLeapMonth], from: currentDate)
+            let components = lunarCalendar.dateComponents([.month, .isLeapMonth], from: currentDate)
             
             if components.isLeapMonth == true {
                 // Found leap month, calculate its length
-                guard let nextMonth = chineseCalendar.date(byAdding: .month, value: 1, to: currentDate) else {
+                guard let nextMonth = lunarCalendar.date(byAdding: .month, value: 1, to: currentDate) else {
                     return (true, components.month ?? 0, 29)
                 }
                 
-                let daysDiff = chineseCalendar.dateComponents([.day], from: currentDate, to: nextMonth).day ?? 29
+                let daysDiff = lunarCalendar.dateComponents([.day], from: currentDate, to: nextMonth).day ?? 29
                 return (true, components.month ?? 0, daysDiff)
             }
             
             // Move to next month
-            guard let nextMonth = chineseCalendar.date(byAdding: .month, value: 1, to: currentDate) else {
+            guard let nextMonth = lunarCalendar.date(byAdding: .month, value: 1, to: currentDate) else {
                 break
             }
             currentDate = nextMonth
@@ -251,14 +244,14 @@ class LunarCalendarConverter {
     
     /// Validate a lunar date using iOS native APIs
     /// - Parameters:
-    ///   - year: iOS Chinese calendar year (e.g., 41 for 2024 CE)
+    ///   - year: iOS lunar calendar year (e.g., 41 for 2024 CE)
     ///   - month: Lunar month
     ///   - day: Lunar day
     ///   - isLeapMonth: Whether this is a leap month
     /// - Returns: True if the date is valid
     static func validateLunarDate(year: Int, month: Int, day: Int, isLeapMonth: Bool) -> Bool {
         var components = DateComponents()
-        components.calendar = chineseCalendar
+        components.calendar = lunarCalendar
         components.year = year
         components.month = month
         components.day = day
@@ -270,13 +263,13 @@ class LunarCalendarConverter {
     
     /// Get the number of days in a specific lunar month using iOS native APIs
     /// - Parameters:
-    ///   - year: iOS Chinese calendar year (e.g., 41 for 2024 CE)
+    ///   - year: iOS lunar calendar year (e.g., 41 for 2024 CE)
     ///   - month: Lunar month
     ///   - isLeapMonth: Whether this is a leap month
     /// - Returns: Number of days in the month
     static func daysInLunarMonth(year: Int, month: Int, isLeapMonth: Bool) -> Int {
         var components = DateComponents()
-        components.calendar = chineseCalendar
+        components.calendar = lunarCalendar
         components.year = year
         components.month = month
         components.day = 1
@@ -285,12 +278,12 @@ class LunarCalendarConverter {
         guard let startDate = components.date else { return 29 }
         
         // Get the next month
-        guard let nextMonth = chineseCalendar.date(byAdding: .month, value: 1, to: startDate) else {
+        guard let nextMonth = lunarCalendar.date(byAdding: .month, value: 1, to: startDate) else {
             return 29
         }
         
         // Calculate the difference
-        let daysDiff = chineseCalendar.dateComponents([.day], from: startDate, to: nextMonth).day ?? 29
+        let daysDiff = lunarCalendar.dateComponents([.day], from: startDate, to: nextMonth).day ?? 29
         return daysDiff
     }
 }

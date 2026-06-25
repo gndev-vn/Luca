@@ -394,7 +394,7 @@ struct DateDetailBottomSheet: View {
         let dayName   = ZodiacYearCalculator.getZodiacDay(for: date)
         let monthName = ZodiacYearCalculator.getZodiacMonth(
             lunarMonth: lunarDate.month,
-            lunarYear: lunarDate.traditionalYear  // must use Gregorian-equivalent year, not iOS Chinese year
+            lunarYear: lunarDate.traditionalYear  // must use Gregorian-equivalent year, not iOS lunar year
         )
         return String(format: String.localized(.lunarDayZodiacFormat), dayName, monthName)
     }
@@ -485,7 +485,27 @@ struct CalendarGridView: View {
         return max(40, usable / rows)
     }
 
+    private func eventsByDate() -> [Date: [Event]] {
+        var map: [Date: [Event]] = [:]
+        for date in datesInMonth {
+            let matches = events.filter { $0.occurs(on: date) }
+            if !matches.isEmpty { map[date] = matches }
+        }
+        return map
+    }
+
+    private func holidaysByDate() -> [Date: [Event]] {
+        var map: [Date: [Event]] = [:]
+        for date in datesInMonth {
+            let matches = publicHolidays.filter { $0.occurs(on: date) }
+            if !matches.isEmpty { map[date] = matches }
+        }
+        return map
+    }
+
     var body: some View {
+        let eventsMap = eventsByDate()
+        let holidaysMap = holidaysByDate()
         VStack(spacing: 0) {
             // Weekday headers
             LazyVGrid(columns: columns, spacing: 0) {
@@ -504,8 +524,8 @@ struct CalendarGridView: View {
             // Calendar dates
             LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(datesInMonth, id: \.self) { date in
-                    let dateEvents = eventsForDate(date)
-                    let dateHolidays = holidaysForDate(date)
+                    let dateEvents = eventsMap[date] ?? []
+                    let dateHolidays = holidaysMap[date] ?? []
                     let lunar = lunarDateProvider(date)
                     let isInDisplayedMonth = lunar.month == displayedLunarMonth.month
                         && lunar.year == displayedLunarMonth.year
@@ -581,18 +601,6 @@ struct CalendarGridView: View {
         }
 
         return allDates
-    }
-
-    private func eventsForDate(_ date: Date) -> [Event] {
-        return events.filter { event in
-            event.occurs(on: date)
-        }
-    }
-    
-    private func holidaysForDate(_ date: Date) -> [Event] {
-        return publicHolidays.filter { holiday in
-            holiday.occurs(on: date)
-        }
     }
 }
 
