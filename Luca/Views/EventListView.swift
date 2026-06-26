@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Filter mode for the event list
-enum EventFilter: Equatable {
+enum EventFilter: Hashable {
     case upcoming
     case today
     case category(EventCategory)
@@ -23,16 +23,219 @@ struct EventListView: View {
         self.lunarCalendarService = lunarCalendarService
     }
     
-    private var isUpcomingSelected: Bool {
-        if case .upcoming = eventFilter { return true }
-        return false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Search Bar
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    
+                    TextField(String.localized(.searchEvents), text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .accessibilityLabel("Search events")
+                        .accessibilityHint("Enter text to search through your events")
+                    
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                
+                // Filter tabs
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            let filters: [EventFilter] = [.today, .upcoming, .category(.personal), .category(.cultural), .category(.religious)]
+                            ForEach(filters, id: \.self) { filter in
+                                Button {
+                                    withAnimation { eventFilter = filter }
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: filterIcon(for: filter))
+                                            .font(.caption2)
+                                        Text(filterLabel(for: filter))
+                                            .font(.caption)
+                                            .fontWeight(.semibold)
+                                    }
+                                    .foregroundColor(eventFilter == filter ? .white : filterColor(for: filter))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        eventFilter == filter
+                                            ? AnyView(filterColor(for: filter))
+                                            : AnyView(filterColor(for: filter).opacity(0.12))
+                                    )
+                                    .cornerRadius(14)
+                                }
+                                .buttonStyle(.plain)
+                                .id(filter)
+                            }
+                        }
+                    }
+                    .onChange(of: eventFilter) { _, newFilter in
+                        withAnimation { proxy.scrollTo(newFilter, anchor: .center) }
+                    }
+                }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 30)
+                        .onEnded { value in
+                            let threshold: CGFloat = 50
+                            guard abs(value.translation.width) > threshold else { return }
+                            let filters: [EventFilter] = [.today, .upcoming, .category(.personal), .category(.cultural), .category(.religious)]
+                            guard let currentIndex = filters.firstIndex(of: eventFilter) else { return }
+                            if value.translation.width < 0, currentIndex < filters.count - 1 {
+                                withAnimation { eventFilter = filters[currentIndex + 1] }
+                            } else if value.translation.width > 0, currentIndex > 0 {
+                                withAnimation { eventFilter = filters[currentIndex - 1] }
+                            }
+                        }
+                )
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            
+            Divider()
+            
+            // Page content
+            eventsPage(for: eventFilter)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .navigationTitle(String.localized(.events))
+        .navigationBarTitleDisplayMode(.large)
+        .refreshable {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+            
+            await viewModel.loadEvents()
+        }
+        .task {
+            await viewModel.loadEvents()
+        }
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .createForm:
+                EventFormView(
+                    viewModel: viewModel,
+                    lunarCalendarService: lunarCalendarService
+                )
+            case .editForm(let event):
+                EventFormView(
+                    viewModel: viewModel,
+                    event: event,
+                    lunarCalendarService: lunarCalendarService
+                )
+            case .deleteConfirmation(let event):
+                ConfirmationBottomSheet(
+                    title: String.localized(.deleteEventConfirmation),
+                    message: String(format: String.localized(.deleteEventMessage), event.title),
+                    buttonTitle: String.localized(.delete),
+                    buttonRole: .destructive,
+                    isPresented: Binding(
+                        get: { activeSheet != nil },
+                        set: { if !$0 { activeSheet = nil } }
+                    )
+                ) {
+                    Task {
+                        await viewModel.deleteEvent(event)
+                    }
+                }
+            }
+        }
     }
     
-    var filteredEvents: [Event] {
+    // MARK: - Swipeable Pages
+    
+    private func eventsPage(for filter: EventFilter) -> some View {
+        let events = filteredEvents(for: filter)
+        
+        return Group {
+            if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if events.isEmpty {
+                EmptyEventsView(
+                    hasEvents: !viewModel.events.isEmpty,
+                    searchText: searchText,
+                    eventFilter: filter,
+                    onCreateEvent: { activeSheet = .createForm }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(events) { event in
+                        EventRowView(
+                            event: event,
+                            onTap: { editEvent(event) },
+                            onDelete: { deleteEvent(event) }
+                        )
+                        .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                                impactFeedback.impactOccurred()
+                                deleteEvent(event)
+                            } label: {
+                                Label(String.localized(.delete), systemImage: "trash")
+                            }
+                            .tint(.red)
+                            
+                            Button {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                impactFeedback.impactOccurred()
+                                editEvent(event)
+                            } label: {
+                                Label(String.localized(.edit), systemImage: "pencil")
+                            }
+                            .tint(.blue)
+                        }
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            if !event.reminderSettings.isEmpty {
+                                Button {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    Task {
+                                        await viewModel.toggleReminders(for: event)
+                                    }
+                                } label: {
+                                    Label(String.localized(.reminders), systemImage: "bell.slash")
+                                }
+                                .tint(.orange)
+                            } else {
+                                Button {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    Task {
+                                        await viewModel.toggleReminders(for: event)
+                                    }
+                                } label: {
+                                    Label(String.localized(.reminders), systemImage: "bell")
+                                }
+                                .tint(.orange)
+                            }
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle()).padding(.top, 6)
+            }
+        }
+    }
+    
+    /// Filter events for a specific filter
+    private func filteredEvents(for filter: EventFilter) -> [Event] {
         var events = viewModel.events
         let now = Calendar.current.startOfDay(for: Date())
         
-        switch eventFilter {
+        switch filter {
         case .today:
             events = events.filter { event in
                 event.occurs(on: now)
@@ -90,177 +293,34 @@ struct EventListView: View {
         return deduplicated.sorted { $0.gregorianDate < $1.gregorianDate }
     }
     
-    var body: some View {
-        VStack(spacing: 0) {
-                // Search and Filter Section
-                VStack(spacing: 12) {
-                    // Search Bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
-                        
-                        TextField(String.localized(.searchEvents), text: $searchText)
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .accessibilityLabel("Search events")
-                            .accessibilityHint("Enter text to search through your events")
-                        
-                        if !searchText.isEmpty {
-                            Button(action: { searchText = "" }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            FilterChip(
-                                filter: .today,
-                                isSelected: eventFilter == .today,
-                                action: { eventFilter = .today }
-                            )
-                            
-                            FilterChip(
-                                filter: .upcoming,
-                                isSelected: eventFilter == .upcoming,
-                                action: { eventFilter = .upcoming }
-                            )
-                            
-                            ForEach(EventCategory.allCases, id: \.self) { category in
-                                FilterChip(
-                                    filter: .category(category),
-                                    isSelected: eventFilter == .category(category),
-                                    action: {
-                                        eventFilter = eventFilter == .category(category) ? .upcoming : .category(category)
-                                    }
-                                )
-                            }
-                        }
-                    }
-         
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                
-                Divider()
-                
-                // Events List
-                if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if filteredEvents.isEmpty {
-                    EmptyEventsView(
-                        hasEvents: !viewModel.events.isEmpty,
-                        searchText: searchText,
-                        eventFilter: eventFilter,
-                        onCreateEvent: { activeSheet = .createForm }
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                List {
-                    ForEach(filteredEvents) { event in
-                        EventRowView(
-                            event: event,
-                            onTap: { editEvent(event) },
-                            onDelete: { deleteEvent(event) }
-                        )
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-                                impactFeedback.impactOccurred()
-                                deleteEvent(event)
-                            } label: {
-                                Label(String.localized(.delete), systemImage: "trash")
-                            }
-                            .tint(.red)
-                            
-                            Button {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                impactFeedback.impactOccurred()
-                                editEvent(event)
-                            } label: {
-                                Label(String.localized(.edit), systemImage: "pencil")
-                            }
-                            .tint(.blue)
-                        }
-                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                            if !event.reminderSettings.isEmpty {
-                                Button {
-                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                    impactFeedback.impactOccurred()
-                                    Task {
-                                        await viewModel.toggleReminders(for: event)
-                                    }
-                                } label: {
-                                    Label(String.localized(.reminders), systemImage: "bell.slash")
-                                }
-                                .tint(.orange)
-                            } else {
-                                Button {
-                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                    impactFeedback.impactOccurred()
-                                    Task {
-                                        await viewModel.toggleReminders(for: event)
-                                    }
-                                } label: {
-                                    Label(String.localized(.reminders), systemImage: "bell")
-                                }
-                                .tint(.orange)
-                            }
-                        }
-                    }
-                }
-                .listStyle(PlainListStyle())
-                }
-            }
-            .navigationTitle(String.localized(.events))
-            .navigationBarTitleDisplayMode(.large)
-            .refreshable {
-                // Haptic feedback for refresh
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
-                
-                await viewModel.loadEvents()
-            }
-            .task {
-                await viewModel.loadEvents()
-            }
-            .sheet(item: $activeSheet) { sheet in
-                switch sheet {
-                case .createForm:
-                    EventFormView(
-                        viewModel: viewModel,
-                        lunarCalendarService: lunarCalendarService
-                    )
-                case .editForm(let event):
-                    EventFormView(
-                        viewModel: viewModel,
-                        event: event,
-                        lunarCalendarService: lunarCalendarService
-                    )
-                case .deleteConfirmation(let event):
-                    ConfirmationBottomSheet(
-                        title: String.localized(.deleteEventConfirmation),
-                        message: String(format: String.localized(.deleteEventMessage), event.title),
-                        buttonTitle: String.localized(.delete),
-                        buttonRole: .destructive,
-                        isPresented: Binding(
-                            get: { activeSheet != nil },
-                            set: { if !$0 { activeSheet = nil } }
-                        )
-                    ) {
-                        Task {
-                            await viewModel.deleteEvent(event)
-                        }
-                    }
-                }
-            }
+    // MARK: - Filter Display Helpers
+    
+    private func filterIcon(for filter: EventFilter) -> String {
+        switch filter {
+        case .today: return "sun.max.fill"
+        case .upcoming: return "clock.fill"
+        case .category(.personal): return "person.fill"
+        case .category(.cultural): return "star.fill"
+        case .category(.religious): return "book.fill"
+        }
+    }
+    
+    private func filterColor(for filter: EventFilter) -> Color {
+        switch filter {
+        case .today: return .orange
+        case .upcoming: return .accentColor
+        case .category(.personal): return .blue
+        case .category(.cultural): return .purple
+        case .category(.religious): return .indigo
+        }
+    }
+    
+    private func filterLabel(for filter: EventFilter) -> String {
+        switch filter {
+        case .today: return String.localized(.today)
+        case .upcoming: return String.localized(.upcomingEvents)
+        case .category(let category): return category.displayName
+        }
     }
     
     // MARK: - Helper Methods
@@ -311,89 +371,83 @@ struct EventRowView: View {
             impactFeedback.impactOccurred()
             onTap()
         }) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(event.title)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                            .multilineTextAlignment(.leading)
-
-                        if !event.description.isEmpty {
-                            Text(event.description)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                        }
-                    }
-
-                    Spacer()
-
-                    if !event.reminderSettings.isEmpty {
-                        Image(systemName: "bell.fill")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                    }
-                }
-
-                if event.recurrence.isRepeating {
-                    // Recurring event description
-                    HStack(spacing: 6) {
-                        Image(systemName: "repeat")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        Text(event.recurrenceDescription)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } else {
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(localized: .lunarDate)
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-
-                            HStack(spacing: 4) {
-                                let lunarText = String(format: String.localized(.lunarDateLine1Format), event.lunarDate.day, event.lunarDate.month, event.lunarDate.traditionalYear)
-                                Text(verbatim: lunarText)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 6) {
+                                Text(event.title)
+                                    .font(.headline)
                                     .foregroundColor(.primary)
+                                    .lineLimit(1)
 
-                                if event.lunarDate.isLeapMonth {
-                                    Text(String.localized(.leapMonth))
+                                if event.isPublicHoliday {
+                                    Image(systemName: "star.fill")
                                         .font(.caption2)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.orange)
-                                        .padding(.horizontal, 3)
-                                        .background(Color.orange.opacity(0.2))
-                                        .cornerRadius(3)
+                                        .foregroundColor(.red)
                                 }
+
+                                if !event.reminderSettings.isEmpty {
+                                    Image(systemName: "bell.fill")
+                                        .font(.caption2)
+                                        .foregroundColor(.orange)
+                                }
+                            }
+
+                            if !event.description.isEmpty {
+                                Text(event.description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
                             }
                         }
 
                         Spacer()
+                    }
 
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text(localized: .gregorianDate)
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                    HStack(spacing: 6) {
+                        Text(event.category.displayName)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(categoryColor)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(categoryColor.opacity(0.12))
+                            .cornerRadius(4)
 
-                            Text(SharedDateFormatters.mediumDateVi.string(from: event.gregorianDate))
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(.primary)
+                        if event.recurrence.isRepeating {
+                            HStack(spacing: 3) {
+                                Image(systemName: "repeat")
+                                    .font(.caption2)
+                                Text(event.recurrence.displayName)
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                            }
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.1))
+                            .cornerRadius(4)
                         }
+
+                        Spacer()
+
+                        Text(lunarDateString)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
                 }
+                .padding(.leading, 12)
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+            .padding(.trailing, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.systemBackground))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 1)
         }
         .buttonStyle(InteractiveButtonStyle())
         .contextMenu {
@@ -414,71 +468,25 @@ struct EventRowView: View {
             }
         }
     }
+
+    private var categoryColor: Color {
+        if event.isPublicHoliday { return .red }
+        switch event.category {
+        case .cultural: return .purple
+        case .religious: return .indigo
+        case .personal: return .accentColor
+        }
+    }
+
+    private var lunarDateString: String {
+        let lunar = event.lunarDate
+        var text = "\(lunar.day)/\(lunar.month)"
+        if lunar.isLeapMonth { text += " (nhuận)" }
+        return text
+    }
 }
 
 /// Filter chip
-struct FilterChip: View {
-    let filter: EventFilter
-    let isSelected: Bool
-    let action: () -> Void
-    
-    private var iconName: String {
-        switch filter {
-        case .today: return "sun.max.fill"
-        case .upcoming: return "clock.fill"
-        case .category(let category):
-            switch category {
-            case .personal: return "person.fill"
-            case .cultural: return "star.fill"
-            case .religious: return "book.fill"
-            }
-        }
-    }
-    
-    private var chipColor: Color {
-        switch filter {
-        case .today: return .orange
-        case .upcoming: return .accentColor
-        case .category(let category):
-            switch category {
-            case .personal: return .blue
-            case .cultural: return .purple
-            case .religious: return .indigo
-            }
-        }
-    }
-    
-    private var label: String {
-        switch filter {
-        case .today: return String.localized(.today)
-        case .upcoming: return String.localized(.upcomingEvents)
-        case .category(let category): return category.displayName
-        }
-    }
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: iconName)
-                    .font(.caption2)
-                Text(label)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-            }
-            .foregroundColor(isSelected ? .white : chipColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(
-                isSelected
-                    ? AnyView(chipColor)
-                    : AnyView(chipColor.opacity(0.12))
-            )
-            .cornerRadius(14)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
 /// Empty state view
 struct EmptyEventsView: View {
     let hasEvents: Bool

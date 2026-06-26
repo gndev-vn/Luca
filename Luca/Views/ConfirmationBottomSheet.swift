@@ -17,7 +17,7 @@ struct ConfirmationBottomSheet: View {
                 .fontWeight(.semibold)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.top, 28)
 
             Text(message)
                 .font(.subheadline)
@@ -55,6 +55,7 @@ struct ConfirmationBottomSheet: View {
                 Spacer(minLength: 0)
             }
         }
+        .background(Color(.systemBackground))
         .presentationDetents([.height(260)])
         .presentationDragIndicator(.visible)
     }

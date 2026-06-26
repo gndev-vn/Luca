@@ -10,7 +10,7 @@ import SwiftUI
 import Combine
 
 /// Categories for events
-enum EventCategory: String, CaseIterable, Codable {
+enum EventCategory: String, CaseIterable, Codable, Hashable {
     case personal = "personal"
     case cultural = "cultural"
     case religious = "religious"

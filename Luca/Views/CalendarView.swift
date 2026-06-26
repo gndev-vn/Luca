@@ -240,7 +240,7 @@ struct MonthYearPickerSheet: View {
                     .fontWeight(.semibold)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 20)
+            .padding(.top, 28)
             .padding(.bottom, 8)
 
             Divider()
@@ -273,6 +273,7 @@ struct MonthYearPickerSheet: View {
         }
         .onChange(of: pickerMonth) { _, _ in updateSelectedDate() }
         .onChange(of: pickerYear) { _, _ in updateSelectedDate() }
+        .background(Color(.systemBackground))
     }
 
     private func updateSelectedDate() {
@@ -345,7 +346,7 @@ struct DateDetailBottomSheet: View {
                     Spacer()
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .padding(.top, 28)
                 .padding(.bottom, 16)
 
                 Divider()
@@ -697,7 +698,7 @@ struct CalendarDateView: View {
 
         }
         .frame(maxWidth: .infinity)
-        .frame(height: cellHeight)
+        .frame(height: cellHeight, alignment: .top)
         .padding(.vertical, 1)
         .background(cellBackground)
         .cornerRadius(8)

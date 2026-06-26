@@ -43,15 +43,16 @@ struct SettingsView: View {
                         }
                     }
                 )) {
-                    HStack {
+                    Label {
+                        Text(localized: .enableNotifications)
+                    } icon: {
                         Image(systemName: "bell.fill")
                             .foregroundColor(.orange)
-                        Text(localized: .enableNotifications)
                     }
                 }
                 
                 if notificationsEnabled {
-                    Toggle(String.localized(.culturalNotifications), isOn: Binding(
+                    Toggle(isOn: Binding(
                         get: { viewModel.userSettings.culturalNotificationsEnabled },
                         set: { newValue in
                             var settings = viewModel.settingsManager.loadSettings()
@@ -60,9 +61,16 @@ struct SettingsView: View {
                             viewModel.userSettings.culturalNotificationsEnabled = newValue
                             Task { await viewModel.setCategoryReminders(category: .cultural, enabled: newValue) }
                         }
-                    ))
+                    )) {
+                        Label {
+                            Text(String.localized(.culturalNotifications))
+                        } icon: {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.purple)
+                        }
+                    }
                     
-                    Toggle(String.localized(.religiousNotifications), isOn: Binding(
+                    Toggle(isOn: Binding(
                         get: { viewModel.userSettings.religiousNotificationsEnabled },
                         set: { newValue in
                             var settings = viewModel.settingsManager.loadSettings()
@@ -71,7 +79,14 @@ struct SettingsView: View {
                             viewModel.userSettings.religiousNotificationsEnabled = newValue
                             Task { await viewModel.setCategoryReminders(category: .religious, enabled: newValue) }
                         }
-                    ))
+                    )) {
+                        Label {
+                            Text(String.localized(.religiousNotifications))
+                        } icon: {
+                            Image(systemName: "book.fill")
+                                .foregroundColor(.indigo)
+                        }
+                    }
                 }
             } footer: {
                 Text(String.localized(.enableNotificationsDescription))
@@ -99,10 +114,11 @@ struct SettingsView: View {
                         .tag(theme)
                     }
                 } label: {
-                    HStack {
+                    Label {
+                        Text(localized: .themeSettings)
+                    } icon: {
                         Image(systemName: "paintbrush")
                             .foregroundColor(.accentColor)
-                        Text(localized: .themeSettings)
                     }
                 }
             } footer: {
@@ -145,8 +161,10 @@ struct SettingsView: View {
             ) {
                 let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
                 impactFeedback.impactOccurred()
-                viewModel.resetToDefaults()
-                notificationsEnabled = viewModel.userSettings.notificationsEnabled && hasPermission
+                Task {
+                    await viewModel.resetToDefaults()
+                    notificationsEnabled = viewModel.userSettings.notificationsEnabled && hasPermission
+                }
             }
         }
         .navigationTitle(localized: .settings)

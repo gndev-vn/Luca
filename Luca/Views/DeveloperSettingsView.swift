@@ -31,9 +31,6 @@ struct DeveloperSettingsView: View {
                     activeSheet = .resetDevMode
                 }
                 .foregroundColor(.red)
-            } header: {
-                Text(String.localized(.developer))
-                    .foregroundColor(.orange)
             } footer: {
                 Text(String.localized(.reseedingDescription))
                     .foregroundColor(.secondary)

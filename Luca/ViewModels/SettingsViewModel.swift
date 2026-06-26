@@ -74,7 +74,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     /// Reset to defaults
-    func resetToDefaults() {
+    func resetToDefaults() async {
         isLoading = true
         errorMessage = nil
         
@@ -82,6 +82,26 @@ class SettingsViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "developer_mode_enabled")
         developerModeEnabled = false
         loadSettings()
+        
+        // Turn off cultural and religious notification toggles
+        userSettings.culturalNotificationsEnabled = false
+        userSettings.religiousNotificationsEnabled = false
+        settingsManager.saveSettings(userSettings)
+        
+        // Clear notifications for all events
+        do {
+            let allEvents = try await dataManager.fetchAllEvents()
+            for event in allEvents {
+                if !event.reminderSettings.isEmpty {
+                    event.reminderSettings = []
+                    try await dataManager.updateEvent(event)
+                    notificationManager.cancelAllReminders(for: event.id)
+                }
+            }
+        } catch {
+            print("Failed to clear event reminders during reset: \(error)")
+        }
+        
         successMessage = String.localized(.settingsReset)
         
         // Clear success message after a delay

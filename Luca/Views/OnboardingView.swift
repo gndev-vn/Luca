@@ -90,8 +90,8 @@ struct OnboardingView: View {
 
 enum OnboardingStep: Int, CaseIterable {
     case welcome = 0
+    case features = 1   
     case permissions = 2
-    case features = 1
     case completion = 3
 }
 
