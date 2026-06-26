@@ -147,6 +147,36 @@ struct EventListView: View {
                         await viewModel.deleteEvent(event)
                     }
                 }
+            case .disableConfirmation(let event):
+                ConfirmationBottomSheet(
+                    title: String.localized(.disableEventConfirmation),
+                    message: String(format: String.localized(.disableEventMessage), event.title),
+                    buttonTitle: String.localized(.disableEvent),
+                    buttonRole: .destructive,
+                    isPresented: Binding(
+                        get: { activeSheet != nil },
+                        set: { if !$0 { activeSheet = nil } }
+                    )
+                ) {
+                    Task {
+                        await viewModel.disableEvent(event)
+                    }
+                }
+            case .enableConfirmation(let event):
+                ConfirmationBottomSheet(
+                    title: String.localized(.enableEvent),
+                    message: String(format: String.localized(.enableEventMessage), event.title),
+                    buttonTitle: String.localized(.enableEvent),
+                    buttonRole: .cancel,
+                    isPresented: Binding(
+                        get: { activeSheet != nil },
+                        set: { if !$0 { activeSheet = nil } }
+                    )
+                ) {
+                    Task {
+                        await viewModel.enableEvent(event)
+                    }
+                }
             }
         }
     }
@@ -171,23 +201,27 @@ struct EventListView: View {
             } else {
                 List {
                     ForEach(events) { event in
+                        let isPreseeded = HolidayService.preseededEventNames.contains(event.title)
                         EventRowView(
                             event: event,
                             onTap: { editEvent(event) },
-                            onDelete: { deleteEvent(event) }
+                            onDelete: { deleteEvent(event) },
+                            onDisable: { toggleDisableEvent(event) }
                         )
                         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-                                impactFeedback.impactOccurred()
-                                deleteEvent(event)
-                            } label: {
-                                Label(String.localized(.delete), systemImage: "trash")
+                            if !isPreseeded {
+                                Button(role: .destructive) {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                                    impactFeedback.impactOccurred()
+                                    deleteEvent(event)
+                                } label: {
+                                    Label(String.localized(.delete), systemImage: "trash")
+                                }
+                                .tint(.red)
                             }
-                            .tint(.red)
                             
                             Button {
                                 let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -333,6 +367,14 @@ struct EventListView: View {
         activeSheet = .deleteConfirmation(event)
     }
     
+    private func toggleDisableEvent(_ event: Event) {
+        if event.isEnabled {
+            activeSheet = .disableConfirmation(event)
+        } else {
+            activeSheet = .enableConfirmation(event)
+        }
+    }
+    
     /// Strip month suffix from ceremony event titles so all monthly variants collapse to one entry
     private func ceremonyBaseName(_ title: String) -> String {
         let ceremonyPrefixes = ["Cúng Mồng Một", "Cúng Rằm"]
@@ -349,12 +391,16 @@ enum EventListSheet: Identifiable {
     case createForm
     case editForm(Event)
     case deleteConfirmation(Event)
+    case disableConfirmation(Event)
+    case enableConfirmation(Event)
     
     var id: String {
         switch self {
         case .createForm: return "createForm"
         case .editForm(let event): return "editForm-\(event.id)"
         case .deleteConfirmation(let event): return "deleteConfirmation-\(event.id)"
+        case .disableConfirmation(let event): return "disableConfirmation-\(event.id)"
+        case .enableConfirmation(let event): return "enableConfirmation-\(event.id)"
         }
     }
 }
@@ -364,6 +410,11 @@ struct EventRowView: View {
     let event: Event
     let onTap: () -> Void
     let onDelete: () -> Void
+    let onDisable: () -> Void
+
+    private var isPreseeded: Bool {
+        HolidayService.preseededEventNames.contains(event.title)
+    }
 
     var body: some View {
         Button(action: {
@@ -391,6 +442,12 @@ struct EventRowView: View {
                                     Image(systemName: "bell.fill")
                                         .font(.caption2)
                                         .foregroundColor(.orange)
+                                }
+
+                                if !event.isEnabled {
+                                    Image(systemName: "eye.slash")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
                                 }
                             }
 
@@ -459,12 +516,25 @@ struct EventRowView: View {
                 Label(String.localized(.edit), systemImage: "pencil")
             }
 
-            Button(role: .destructive, action: {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+            if !isPreseeded {
+                Button(role: .destructive, action: {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                    impactFeedback.impactOccurred()
+                    onDelete()
+                }) {
+                    Label(String.localized(.delete), systemImage: "trash")
+                }
+            }
+
+            Button(action: {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                 impactFeedback.impactOccurred()
-                onDelete()
+                onDisable()
             }) {
-                Label(String.localized(.delete), systemImage: "trash")
+                Label(
+                    event.isEnabled ? String.localized(.disableEvent) : String.localized(.enableEvent),
+                    systemImage: event.isEnabled ? "xmark.circle" : "checkmark.circle"
+                )
             }
         }
     }

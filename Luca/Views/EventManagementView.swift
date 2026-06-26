@@ -222,13 +222,25 @@ struct EventDetailView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
+                    let isPreseeded = HolidayService.preseededEventNames.contains(event.title)
                     Menu {
                         Button(action: { activeSheet = .editForm }) {
                             Label(String.localized(.edit), systemImage: "pencil")
                         }
                         
-                        Button(role: .destructive, action: { activeSheet = .deleteConfirmation }) {
-                            Label(String.localized(.delete), systemImage: "trash")
+                        if !isPreseeded {
+                            Button(role: .destructive, action: { activeSheet = .deleteConfirmation }) {
+                                Label(String.localized(.delete), systemImage: "trash")
+                            }
+                        }
+                        
+                        Button(action: {
+                            activeSheet = event.isEnabled ? .disableConfirmation : .enableConfirmation
+                        }) {
+                            Label(
+                                event.isEnabled ? String.localized(.disableEvent) : String.localized(.enableEvent),
+                                systemImage: event.isEnabled ? "xmark.circle" : "checkmark.circle"
+                            )
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -259,6 +271,38 @@ struct EventDetailView: View {
                             dismiss()
                         }
                     }
+                case .disableConfirmation:
+                    ConfirmationBottomSheet(
+                        title: String.localized(.disableEventConfirmation),
+                        message: String(format: String.localized(.disableEventMessage), event.title),
+                        buttonTitle: String.localized(.disableEvent),
+                        buttonRole: .destructive,
+                        isPresented: Binding(
+                            get: { activeSheet != nil },
+                            set: { if !$0 { activeSheet = nil } }
+                        )
+                    ) {
+                        Task {
+                            await viewModel.disableEvent(event)
+                            dismiss()
+                        }
+                    }
+                case .enableConfirmation:
+                    ConfirmationBottomSheet(
+                        title: String.localized(.enableEvent),
+                        message: String(format: String.localized(.enableEventMessage), event.title),
+                        buttonTitle: String.localized(.enableEvent),
+                        buttonRole: .cancel,
+                        isPresented: Binding(
+                            get: { activeSheet != nil },
+                            set: { if !$0 { activeSheet = nil } }
+                        )
+                    ) {
+                        Task {
+                            await viewModel.enableEvent(event)
+                            dismiss()
+                        }
+                    }
                 }
             }
         }
@@ -269,11 +313,15 @@ struct EventDetailView: View {
 private enum DetailViewSheet: Identifiable {
     case editForm
     case deleteConfirmation
+    case disableConfirmation
+    case enableConfirmation
     
     var id: String {
         switch self {
         case .editForm: return "editForm"
         case .deleteConfirmation: return "deleteConfirmation"
+        case .disableConfirmation: return "disableConfirmation"
+        case .enableConfirmation: return "enableConfirmation"
         }
     }
 }

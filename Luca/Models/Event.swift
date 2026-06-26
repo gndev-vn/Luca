@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import CoreData
 
 /// Categories for events
 enum EventCategory: String, CaseIterable, Codable, Hashable {
@@ -88,6 +89,7 @@ class Event: ObservableObject, Identifiable, Codable {
     @Published var notificationTime: Date
     @Published var notificationSoundName: String?
     @Published var duration: Int
+    @Published var isEnabled: Bool
     
     /// For ceremony events that span month boundaries (e.g., Cúng Mồng Một).
     /// When non-nil, the event displays on the last day of (ceremonyMonth - 1)
@@ -225,7 +227,8 @@ class Event: ObservableObject, Identifiable, Codable {
         notificationTime: Date? = nil,
         notificationSoundName: String? = nil,
         duration: Int = 1,
-        ceremonyMonth: Int? = nil
+        ceremonyMonth: Int? = nil,
+        isEnabled: Bool = true
     ) {
         self.id = id
         self.title = title
@@ -243,6 +246,7 @@ class Event: ObservableObject, Identifiable, Codable {
         self.notificationSoundName = notificationSoundName
         self.duration = duration
         self.ceremonyMonth = ceremonyMonth
+        self.isEnabled = isEnabled
     }
     
     static var defaultNotificationTime: Date {
@@ -285,7 +289,8 @@ class Event: ObservableObject, Identifiable, Codable {
             notificationTime: entity.notificationTime,
             notificationSoundName: entity.notificationSoundName,
             duration: Int(entity.duration),
-            ceremonyMonth: nil
+            ceremonyMonth: nil,
+            isEnabled: (entity.value(forKey: "isEnabled") as? Bool) ?? true
         )
     }
     
@@ -308,6 +313,7 @@ class Event: ObservableObject, Identifiable, Codable {
         entity.notificationTime = self.notificationTime
         entity.notificationSoundName = self.notificationSoundName
         entity.duration = Int32(self.duration)
+        entity.isEnabled = self.isEnabled
         entity.updatedAt = Date()
         
         if entity.createdAt == nil {
@@ -317,7 +323,7 @@ class Event: ObservableObject, Identifiable, Codable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, title, description, tags, lunarDate, gregorianDate, category, isPublicHoliday, recurrence, reminderSettings, soundEnabled, vibrationEnabled, notificationTime, notificationSoundName, duration, ceremonyMonth
+        case id, title, description, tags, lunarDate, gregorianDate, category, isPublicHoliday, recurrence, reminderSettings, soundEnabled, vibrationEnabled, notificationTime, notificationSoundName, duration, ceremonyMonth, isEnabled
         case oldIsRecurring = "isRecurring"
     }
 
@@ -346,6 +352,7 @@ class Event: ObservableObject, Identifiable, Codable {
         notificationTime = try container.decodeIfPresent(Date.self, forKey: .notificationTime) ?? Self.defaultNotificationTime
         notificationSoundName = try container.decodeIfPresent(String.self, forKey: .notificationSoundName)
         duration = try container.decodeIfPresent(Int.self, forKey: .duration) ?? 1
+        isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
         ceremonyMonth = try container.decodeIfPresent(Int.self, forKey: .ceremonyMonth)
     }
 
@@ -366,6 +373,7 @@ class Event: ObservableObject, Identifiable, Codable {
         try container.encode(notificationTime, forKey: .notificationTime)
         try container.encodeIfPresent(notificationSoundName, forKey: .notificationSoundName)
         try container.encode(duration, forKey: .duration)
+        try container.encode(isEnabled, forKey: .isEnabled)
         try container.encodeIfPresent(ceremonyMonth, forKey: .ceremonyMonth)
     }
 }

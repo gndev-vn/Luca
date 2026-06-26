@@ -87,7 +87,10 @@ struct CalendarView: View {
         .navigationTitle(String.localized(.lunarCalendar))
         .navigationBarTitleDisplayMode(.large)
         .task {
-            if !viewModel.hasInitiallyLoaded {
+            await viewModel.loadEvents()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .eventsDidChange)) { _ in
+            Task {
                 await viewModel.loadEvents()
             }
         }
@@ -858,23 +861,6 @@ struct EventDetailSheet: View {
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
-
-                    // Holiday-specific information (removed — not currently useful)
-
-                    // Recurring indicator
-                    if event.recurrence.isRepeating && !event.isPublicHoliday {
-                        HStack(spacing: 4) {
-                            Image(systemName: "repeat")
-                                .font(.caption)
-                            Text(event.recurrence.displayName)
-                                .font(.caption)
-                        }
-                        .foregroundColor(.accentColor)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentColor.opacity(0.1))
-                        .cornerRadius(8)
-                    }
 
                     // Event description
                     if !event.description.isEmpty {

@@ -25,6 +25,9 @@ struct EventFormView: View {
     @State private var validationErrors: [String] = []
     @State private var isSaving = false
     
+    // Event status
+    @State private var isEventEnabled: Bool
+    
     // Reminder state
     @State private var notifyOnDay: Bool
     @State private var notifyBefore: Bool
@@ -116,6 +119,7 @@ struct EventFormView: View {
         let initialMonth = lunarDate.isLeapMonth ? lunarDate.month + 100 : lunarDate.month
         _pickerMonth = State(initialValue: initialMonth)
         _pickerDay = State(initialValue: lunarDate.day)
+        _isEventEnabled = State(initialValue: true)
         _notifyOnDay = State(initialValue: false)
         _notifyBefore = State(initialValue: false)
         _notifyBeforeDays = State(initialValue: 1)
@@ -155,6 +159,7 @@ struct EventFormView: View {
             initialDay = event.lunarDate.day
         }
         _pickerDay = State(initialValue: initialDay)
+        _isEventEnabled = State(initialValue: event.isEnabled)
         _notifyOnDay = State(initialValue: event.reminderSettings.contains(.onDay))
         _notifyBefore = State(initialValue: event.reminderSettings.contains { $0 != .onDay })
         if let beforeType = event.reminderSettings.first(where: { $0 != .onDay }) {
@@ -474,6 +479,23 @@ struct EventFormView: View {
                     }
                 }
                 
+                // Event Status Section
+                Section {
+                    Toggle(isOn: $isEventEnabled) {
+                        HStack {
+                            Image(systemName: "eye")
+                                .foregroundColor(.blue)
+                                .symbolRenderingMode(.hierarchical)
+                            Text(String.localized(isEventEnabled ? .enableEvent : .disableEvent))
+                        }
+                    }
+                } header: {
+                    Text(String.localized(.enableEvent))
+                        .textCase(nil)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.secondary)
+                }
+                
                 // Validation Errors
                 if !validationErrors.isEmpty {
                     Section {
@@ -627,6 +649,7 @@ struct EventFormView: View {
             if let existingEvent = event {
                 if isPreseeded {
                     existingEvent.reminderSettings = reminderSettings
+                    existingEvent.isEnabled = isEventEnabled
                 } else {
                     existingEvent.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
                     existingEvent.description = description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -639,6 +662,7 @@ struct EventFormView: View {
                     existingEvent.soundEnabled = soundEnabled
                     existingEvent.vibrationEnabled = vibrationEnabled
                     existingEvent.notificationSoundName = notificationSoundName
+                    existingEvent.isEnabled = isEventEnabled
                 }
                 await viewModel.updateEvent(existingEvent)
             } else {
@@ -655,7 +679,8 @@ struct EventFormView: View {
                     soundEnabled: soundEnabled,
                     vibrationEnabled: vibrationEnabled,
                     notificationTime: notificationTime,
-                    notificationSoundName: notificationSoundName
+                    notificationSoundName: notificationSoundName,
+                    isEnabled: isEventEnabled
                 )
                 
                 await viewModel.createEvent(eventToSave)

@@ -46,17 +46,17 @@ class CalendarViewModel: ObservableObject {
         loadingTask = Task { [weak self] in
             guard let self else { return }
 
-            await setLoading(true)
+            setLoading(true)
 
             do {
                 let fetched = try await dataManager.fetchAllEvents()
                 allEvents = fetched
-                await applyEvents(allEvents: fetched)
+                applyEvents(allEvents: fetched)
             } catch {
                 await MainActor.run { self.errorMessage = error.localizedDescription }
             }
 
-            await setLoading(false)
+            setLoading(false)
         }
 
         await loadingTask?.value
@@ -73,8 +73,8 @@ class CalendarViewModel: ObservableObject {
 
     @MainActor
     private func applyEvents(allEvents: [Event]) {
-        publicHolidays = allEvents.filter { $0.isPublicHoliday }
-        events = allEvents.filter { !$0.isPublicHoliday }
+        publicHolidays = allEvents.filter { $0.isPublicHoliday && $0.isEnabled }
+        events = allEvents.filter { !$0.isPublicHoliday && $0.isEnabled }
     }
 
     /// Navigate to the next month

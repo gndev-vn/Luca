@@ -96,6 +96,7 @@ class DynamicReminderService {
             let events = try await dataManager.fetchEvents(for: dateRange)
             let settings = settingsManager.loadSettings()
             let eventsWithReminders = events.filter { event in
+                guard event.isEnabled else { return false }
                 guard !event.reminderSettings.isEmpty else { return false }
                 switch event.category {
                 case .cultural: return settings.culturalNotificationsEnabled

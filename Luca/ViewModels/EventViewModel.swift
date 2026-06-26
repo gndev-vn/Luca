@@ -39,6 +39,10 @@ class EventViewModel: ObservableObject {
         isLoading = false
     }
     
+    private func postEventsChangedNotification() {
+        NotificationCenter.default.post(name: .eventsDidChange, object: nil)
+    }
+    
     /// Create a new event
     func createEvent(_ event: Event) async {
         errorMessage = nil
@@ -52,10 +56,12 @@ class EventViewModel: ObservableObject {
             
             try await dataManager.saveEvent(event)
             
-            for reminderType in event.reminderSettings {
-                let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
-                if !success {
-                    print("Warning: Failed to schedule \(reminderType.displayName) reminder for event: \(event.title)")
+            if event.isEnabled {
+                for reminderType in event.reminderSettings {
+                    let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
+                    if !success {
+                        print("Warning: Failed to schedule \(reminderType.displayName) reminder for event: \(event.title)")
+                    }
                 }
             }
             
@@ -79,19 +85,21 @@ class EventViewModel: ObservableObject {
             notificationManager.cancelAllReminders(for: event.id)
             try await dataManager.updateEvent(event)
             
-            let settings = UserDefaultsSettingsManager().loadSettings()
-            let categoryAllowed: Bool = {
-                switch event.category {
-                case .cultural: return settings.culturalNotificationsEnabled
-                case .religious: return settings.religiousNotificationsEnabled
-                case .personal: return true
-                }
-            }()
-            
-            for reminderType in event.reminderSettings where categoryAllowed {
-                let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
-                if !success {
-                    print("Warning: Failed to schedule \(reminderType.displayName) reminder for updated event: \(event.title)")
+            if event.isEnabled {
+                let settings = UserDefaultsSettingsManager().loadSettings()
+                let categoryAllowed: Bool = {
+                    switch event.category {
+                    case .cultural: return settings.culturalNotificationsEnabled
+                    case .religious: return settings.religiousNotificationsEnabled
+                    case .personal: return true
+                    }
+                }()
+                
+                for reminderType in event.reminderSettings where categoryAllowed {
+                    let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
+                    if !success {
+                        print("Warning: Failed to schedule \(reminderType.displayName) reminder for updated event: \(event.title)")
+                    }
                 }
             }
             
@@ -110,6 +118,58 @@ class EventViewModel: ObservableObject {
             notificationManager.cancelAllReminders(for: event.id)
             try await dataManager.deleteEvent(event)
             await loadEvents()
+            postEventsChangedNotification()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    /// Disable an event (hide from calendar, disable notifications)
+    func disableEvent(_ event: Event) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let updatedEvent = event
+            updatedEvent.isEnabled = false
+            notificationManager.cancelAllReminders(for: updatedEvent.id)
+            try await dataManager.updateEvent(updatedEvent)
+            await loadEvents()
+            postEventsChangedNotification()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    /// Enable a disabled event
+    func enableEvent(_ event: Event) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let updatedEvent = event
+            updatedEvent.isEnabled = true
+            try await dataManager.updateEvent(updatedEvent)
+            
+            let settings = UserDefaultsSettingsManager().loadSettings()
+            let categoryAllowed: Bool = {
+                switch updatedEvent.category {
+                case .cultural: return settings.culturalNotificationsEnabled
+                case .religious: return settings.religiousNotificationsEnabled
+                case .personal: return true
+                }
+            }()
+            
+            for reminderType in updatedEvent.reminderSettings where categoryAllowed {
+                let _ = await notificationManager.scheduleReminder(for: updatedEvent, reminderType: reminderType)
+            }
+            
+            await loadEvents()
+            postEventsChangedNotification()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -123,7 +183,7 @@ class EventViewModel: ObservableObject {
         
         do {
             // Create a copy with toggled reminders
-            var updatedEvent = event
+            let updatedEvent = event
             if updatedEvent.reminderSettings.isEmpty {
                 // Add default reminder
                 updatedEvent.reminderSettings = [.oneDayBefore]
@@ -136,9 +196,9 @@ class EventViewModel: ObservableObject {
             try await dataManager.updateEvent(updatedEvent)
             
             // Re-schedule if enabled
-            if !updatedEvent.reminderSettings.isEmpty {
+            if updatedEvent.isEnabled && !updatedEvent.reminderSettings.isEmpty {
                 for reminderType in updatedEvent.reminderSettings {
-                    await notificationManager.scheduleReminder(for: updatedEvent, reminderType: reminderType)
+                    let _ = await notificationManager.scheduleReminder(for: updatedEvent, reminderType: reminderType)
                 }
             }
             

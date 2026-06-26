@@ -64,6 +64,11 @@ enum LocalizedStringKey: String, CaseIterable {
     case eventDetails = "event_details"
     case holidayDetails = "holiday_details"
     case deleteEvent = "delete_event"
+    case disableEvent = "disable_event"
+    case enableEvent = "enable_event"
+    case disableEventConfirmation = "disable_event_confirmation"
+    case disableEventMessage = "disable_event_message"
+    case enableEventMessage = "enable_event_message"
     case createEvent = "create_event"
     case editEvent = "edit_event"
 

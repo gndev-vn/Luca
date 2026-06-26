@@ -72,6 +72,11 @@
 "event_details" = "Chi tiết sự kiện";
 "holiday_details" = "Chi tiết ngày lễ";
 "delete_event" = "Xóa sự kiện";
+"disable_event" = "Vô hiệu hóa";
+"enable_event" = "Kích hoạt";
+"disable_event_confirmation" = "Vô hiệu hóa sự kiện";
+"disable_event_message" = "Bạn có chắc chắn muốn vô hiệu hóa '%@' không? Sự kiện sẽ không hiển thị trên lịch và thông báo sẽ bị tắt.";
+"enable_event_message" = "Bạn có chắc chắn muốn kích hoạt lại '%@' không?";
 "create_event" = "Tạo sự kiện";
 "edit_event" = "Chỉnh sửa sự kiện";
 

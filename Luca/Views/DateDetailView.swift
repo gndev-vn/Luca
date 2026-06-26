@@ -113,7 +113,8 @@ struct DateDetailView: View {
             let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
             let dateRange = DateInterval(start: startOfDay, end: endOfDay)
             
-            events = try await dataManager.fetchEvents(for: dateRange)
+            let fetched = try await dataManager.fetchEvents(for: dateRange)
+            events = fetched.filter { $0.isEnabled }
         } catch {
             print("Error loading events: \(error)")
         }

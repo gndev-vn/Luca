@@ -495,6 +495,7 @@ class NavigationCoordinator: ObservableObject {
 
 extension Notification.Name {
     static let deepLinkReceived = Notification.Name("deepLinkReceived")
+    static let eventsDidChange = Notification.Name("eventsDidChange")
 }
 
 // MARK: - Event Placeholder
