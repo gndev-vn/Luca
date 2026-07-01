@@ -112,8 +112,6 @@ enum LocalizedStringKey: String, CaseIterable {
     case themeInformation = "theme_information"
     case eventTitle = "event_title"
     case descriptionOptional = "description_optional"
-    case addTagPlaceholder = "add_tag_placeholder"
-    case tags = "tags"
     case upcomingEvents = "upcoming_events"
     case andMoreFormat = "and_more_format"
 

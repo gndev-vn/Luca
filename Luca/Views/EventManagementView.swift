@@ -170,7 +170,7 @@ struct EventDetailView: View {
                     }
                     .padding()
                     .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(AppDesign.cardCornerRadius)
                     
                     // Description
                     if !event.description.isEmpty {
@@ -182,7 +182,7 @@ struct EventDetailView: View {
                                 .font(.body)
                                 .padding()
                                 .background(Color(.systemGray6))
-                                .cornerRadius(8)
+                                .cornerRadius(AppDesign.cardCornerRadius)
                         }
                     }
                     
@@ -206,7 +206,7 @@ struct EventDetailView: View {
                             }
                             .padding()
                             .background(Color(.systemGray6))
-                            .cornerRadius(8)
+                            .cornerRadius(AppDesign.cardCornerRadius)
                         }
                     }
                 }

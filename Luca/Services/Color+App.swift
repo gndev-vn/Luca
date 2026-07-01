@@ -1,5 +1,10 @@
 import SwiftUI
 
+enum AppDesign {
+    // iOS card standard radius token used across card-style surfaces.
+    static let cardCornerRadius: CGFloat = 16
+}
+
 extension Color {
     // MARK: - Brand Colors
     static let appAccent = Color.accentColor

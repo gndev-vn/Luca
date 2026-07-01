@@ -176,7 +176,7 @@ struct WelcomeStepView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.accentColor)
-                    .cornerRadius(12)
+                    .cornerRadius(AppDesign.cardCornerRadius)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -262,7 +262,7 @@ struct PermissionsStepView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(notificationPermissionGranted ? Color.green : Color.orange)
-                    .cornerRadius(12)
+                    .cornerRadius(AppDesign.cardCornerRadius)
                 }
                 .disabled(isRequestingPermission || notificationPermissionGranted)
                 
@@ -372,7 +372,7 @@ struct FeaturesStepView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.accentColor)
-                    .cornerRadius(12)
+                    .cornerRadius(AppDesign.cardCornerRadius)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -422,7 +422,7 @@ struct CompletionStepView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.accentColor)
-                    .cornerRadius(12)
+                    .cornerRadius(AppDesign.cardCornerRadius)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -487,7 +487,7 @@ struct OnboardingFeatureCard: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cornerRadius(AppDesign.cardCornerRadius)
     }
 }
 

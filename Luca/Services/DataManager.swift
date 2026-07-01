@@ -149,7 +149,7 @@ class CoreDataManager: DataManager {
             event.updateEntity(entity)
             
             // Handle reminders
-            try await updateReminders(for: entity, with: event.reminderSettings, in: context)
+            try updateReminders(for: entity, with: event.reminderSettings, in: context)
             
             // Save context
             try context.save()
@@ -298,11 +298,11 @@ class CoreDataManager: DataManager {
     
     // MARK: - Private Helper Methods
     
-    private func updateReminders(for eventEntity: EventEntity, with reminderTypes: [ReminderType], in context: NSManagedObjectContext) async throws {
+    private func updateReminders(for eventEntity: EventEntity, with reminderTypes: [ReminderType], in context: NSManagedObjectContext) throws {
         // Remove existing reminders
-        if let existingReminders = eventEntity.reminders {
+        if let existingReminders = eventEntity.reminders as? Set<ReminderEntity> {
             for reminder in existingReminders {
-                context.delete(reminder as! NSManagedObject)
+                context.delete(reminder)
             }
         }
         

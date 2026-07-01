@@ -56,13 +56,9 @@ class DefaultNotificationManager: NotificationManager {
     /// The notification center for managing notifications
     private let notificationCenter = UNUserNotificationCenter.current()
     
-    /// Lunar calendar service for date conversions
-    private let lunarCalendarService: LunarCalendarService
-    
     // MARK: - Initialization
     
-    init(lunarCalendarService: LunarCalendarService = DefaultLunarCalendarService()) {
-        self.lunarCalendarService = lunarCalendarService
+    init() {
         setupNotificationCategories()
     }
     
@@ -360,9 +356,15 @@ struct LunarNotificationContent {
     /// - Parameter gregorianDate: The Gregorian date to format
     /// - Returns: Formatted Gregorian date string
     private static func formatGregorianDate(_ gregorianDate: Date) -> String {
+        SharedFormatterCache.gregorianDate.string(from: gregorianDate)
+    }
+}
+
+private enum SharedFormatterCache {
+    static let gregorianDate: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
-        return formatter.string(from: gregorianDate)
-    }
+        return formatter
+    }()
 }

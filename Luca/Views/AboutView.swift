@@ -22,7 +22,7 @@ struct AboutView: View {
             VStack(spacing: 20) {
                 // App Header
                 VStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius)
                         .fill(
                             LinearGradient(
                                 colors: [.red, .orange],
@@ -77,8 +77,8 @@ struct AboutView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Features
                 VStack(alignment: .leading, spacing: 12) {
@@ -116,8 +116,8 @@ struct AboutView: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Legal
                 VStack(alignment: .leading, spacing: 12) {
@@ -131,8 +131,8 @@ struct AboutView: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Contact
                 VStack(alignment: .leading, spacing: 12) {
@@ -156,8 +156,8 @@ struct AboutView: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Copyright
                 Text(localized: .copyright)
@@ -167,6 +167,7 @@ struct AboutView: View {
             }
             .padding()
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle(localized: .about)
         .navigationBarTitleDisplayMode(.large)
         .overlay(alignment: .bottom) {

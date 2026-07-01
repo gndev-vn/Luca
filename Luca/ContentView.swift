@@ -168,6 +168,9 @@ struct ContentView: View {
             }
             .tag(AppTab.settings)
         }
+        .background(Color(.systemGroupedBackground))
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .environmentObject(navigationCoordinator)
 
         .onAppear {

@@ -39,6 +39,8 @@ struct DeveloperSettingsView: View {
                 .foregroundColor(.red)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color(.systemGroupedBackground))
         .navigationTitle(String.localized(.developer))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $activeSheet) { sheet in

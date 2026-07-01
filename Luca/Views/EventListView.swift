@@ -25,7 +25,7 @@ struct EventListView: View {
     
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 10) {
             // Search Bar
             VStack(spacing: 12) {
                 HStack {
@@ -46,8 +46,8 @@ struct EventListView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Filter tabs
                 ScrollViewReader { proxy in
@@ -84,30 +84,18 @@ struct EventListView: View {
                         withAnimation { proxy.scrollTo(newFilter, anchor: .center) }
                     }
                 }
-                .simultaneousGesture(
-                    DragGesture(minimumDistance: 30)
-                        .onEnded { value in
-                            let threshold: CGFloat = 50
-                            guard abs(value.translation.width) > threshold else { return }
-                            let filters: [EventFilter] = [.today, .upcoming, .category(.personal), .category(.cultural), .category(.religious)]
-                            guard let currentIndex = filters.firstIndex(of: eventFilter) else { return }
-                            if value.translation.width < 0, currentIndex < filters.count - 1 {
-                                withAnimation { eventFilter = filters[currentIndex + 1] }
-                            } else if value.translation.width > 0, currentIndex > 0 {
-                                withAnimation { eventFilter = filters[currentIndex - 1] }
-                            }
-                        }
-                )
             }
-            .padding()
-            .background(Color(.systemBackground))
-            
-            Divider()
+            .padding(.horizontal, 12)
+            .padding(.top, 10)
+            .padding(.bottom, 2)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
+            .padding(.horizontal, 12)
             
             // Page content
             eventsPage(for: eventFilter)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle(String.localized(.events))
         .navigationBarTitleDisplayMode(.large)
         .refreshable {
@@ -259,7 +247,10 @@ struct EventListView: View {
                         }
                     }
                 }
-                .listStyle(PlainListStyle()).padding(.top, 6)
+                .listStyle(PlainListStyle())
+                .scrollContentBackground(.hidden)
+                .background(Color(.systemGroupedBackground))
+                .padding(.top, 6)
             }
         }
     }
@@ -296,10 +287,9 @@ struct EventListView: View {
             events = events.filter { event in
                 let matchesTitleDescription = event.title.localizedCaseInsensitiveContains(query) ||
                     event.description.localizedCaseInsensitiveContains(query)
-                let matchesTags = event.tags.contains { $0.localizedCaseInsensitiveContains(query) }
                 let matchesLunarDate = String(format: String.localized(.lunarDateSearchFormat), event.lunarDate.day, event.lunarDate.month, event.lunarDate.traditionalYear).localizedCaseInsensitiveContains(query)
                 let matchesGregorian = SharedDateFormatters.mediumDateVi.string(from: event.gregorianDate).localizedCaseInsensitiveContains(query)
-                return matchesTitleDescription || matchesTags || matchesLunarDate || matchesGregorian
+                return matchesTitleDescription || matchesLunarDate || matchesGregorian
             }
         }
         
@@ -500,10 +490,10 @@ struct EventRowView: View {
             .padding(.trailing, 16)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius)
                     .fill(Color(.systemBackground))
             )
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius))
             .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 1)
         }
         .buttonStyle(InteractiveButtonStyle())

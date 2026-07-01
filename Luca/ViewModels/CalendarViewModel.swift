@@ -23,8 +23,12 @@ class CalendarViewModel: ObservableObject {
     private let lunarCalendarService: LunarCalendarService
     private let dataManager: DataManager
     private var loadingTask: Task<Void, Never>?
+    private let calendar = Calendar.current
 
     private var allEvents: [Event] = []
+    private var customEventsByDay: [Date: [Event]] = [:]
+    private var holidayEventsByDay: [Date: [Event]] = [:]
+    private var combinedEventsByDay: [Date: [Event]] = [:]
 
     /// Current lunar date for the displayed month
     var currentLunarDate: LunarDate? {
@@ -75,6 +79,17 @@ class CalendarViewModel: ObservableObject {
     private func applyEvents(allEvents: [Event]) {
         publicHolidays = allEvents.filter { $0.isPublicHoliday && $0.isEnabled }
         events = allEvents.filter { !$0.isPublicHoliday && $0.isEnabled }
+        clearOccurrenceCache()
+    }
+
+    private func clearOccurrenceCache() {
+        customEventsByDay.removeAll(keepingCapacity: true)
+        holidayEventsByDay.removeAll(keepingCapacity: true)
+        combinedEventsByDay.removeAll(keepingCapacity: true)
+    }
+
+    private func dayKey(for date: Date) -> Date {
+        calendar.startOfDay(for: date)
     }
 
     /// Navigate to the next month
@@ -116,13 +131,38 @@ class CalendarViewModel: ObservableObject {
 
     /// Get events for a specific date (custom events and holidays)
     func events(for date: Date) -> [Event] {
-        let customEvents = events.filter { event in
-            event.occurs(on: date)
+        let key = dayKey(for: date)
+        if let cached = combinedEventsByDay[key] {
+            return cached
         }
-        let holidayEvents = publicHolidays.filter { holiday in
-            holiday.occurs(on: date)
+
+        let combined = customEvents(for: date) + holidayEvents(for: date)
+        combinedEventsByDay[key] = combined
+        return combined
+    }
+
+    /// Get custom events for a specific date
+    func customEvents(for date: Date) -> [Event] {
+        let key = dayKey(for: date)
+        if let cached = customEventsByDay[key] {
+            return cached
         }
-        return customEvents + holidayEvents
+
+        let matched = events.filter { $0.occurs(on: key) }
+        customEventsByDay[key] = matched
+        return matched
+    }
+
+    /// Get holidays for a specific date
+    func holidayEvents(for date: Date) -> [Event] {
+        let key = dayKey(for: date)
+        if let cached = holidayEventsByDay[key] {
+            return cached
+        }
+
+        let matched = publicHolidays.filter { $0.occurs(on: key) }
+        holidayEventsByDay[key] = matched
+        return matched
     }
 
     /// Get lunar date for a Gregorian date

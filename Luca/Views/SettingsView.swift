@@ -151,6 +151,8 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color(.systemGroupedBackground))
         .sheet(isPresented: $showResetConfirmation) {
             ConfirmationBottomSheet(
                 title: String.localized(.resetAllSettingsTitle),

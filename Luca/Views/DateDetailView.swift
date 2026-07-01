@@ -56,7 +56,7 @@ struct DateDetailView: View {
                 }
                 .padding()
                 .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Events Section
                 VStack(alignment: .leading, spacing: 12) {
@@ -87,7 +87,7 @@ struct DateDetailView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color(.systemGray6))
-                            .cornerRadius(8)
+                            .cornerRadius(AppDesign.cardCornerRadius)
                     } else {
                         ForEach(events) { event in
                             DateEventRowView(event: event)
@@ -162,13 +162,13 @@ struct DateEventRowView: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(8)
+        .cornerRadius(AppDesign.cardCornerRadius)
     }
     
 }
 
 #Preview {
-    NavigationView {
+    NavigationStack {
         DateDetailView(
             date: Date(),
             lunarCalendarService: MockLunarCalendarService(),

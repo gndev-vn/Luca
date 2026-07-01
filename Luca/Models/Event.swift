@@ -77,7 +77,6 @@ class Event: ObservableObject, Identifiable, Codable {
     let id: UUID
     @Published var title: String
     @Published var description: String
-    @Published var tags: [String]
     @Published var lunarDate: LunarDate
     @Published var gregorianDate: Date
     @Published var category: EventCategory
@@ -215,7 +214,6 @@ class Event: ObservableObject, Identifiable, Codable {
         id: UUID = UUID(),
         title: String,
         description: String = "",
-        tags: [String] = [],
         lunarDate: LunarDate,
         gregorianDate: Date? = nil,
         category: EventCategory = .personal,
@@ -233,7 +231,6 @@ class Event: ObservableObject, Identifiable, Codable {
         self.id = id
         self.title = title
         self.description = description
-        self.tags = tags
         self.lunarDate = lunarDate
         self.gregorianDate = gregorianDate ?? lunarDate.toGregorian()
         self.category = category
@@ -323,7 +320,7 @@ class Event: ObservableObject, Identifiable, Codable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, title, description, tags, lunarDate, gregorianDate, category, isPublicHoliday, recurrence, reminderSettings, soundEnabled, vibrationEnabled, notificationTime, notificationSoundName, duration, ceremonyMonth, isEnabled
+        case id, title, description, lunarDate, gregorianDate, category, isPublicHoliday, recurrence, reminderSettings, soundEnabled, vibrationEnabled, notificationTime, notificationSoundName, duration, ceremonyMonth, isEnabled
         case oldIsRecurring = "isRecurring"
     }
 
@@ -332,7 +329,6 @@ class Event: ObservableObject, Identifiable, Codable {
         id = try container.decode(UUID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         description = try container.decode(String.self, forKey: .description)
-        tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         let decodedLunarDate = try container.decode(LunarDate.self, forKey: .lunarDate)
         lunarDate = decodedLunarDate
         let decodedGregorian = try container.decodeIfPresent(Date.self, forKey: .gregorianDate)
@@ -361,7 +357,6 @@ class Event: ObservableObject, Identifiable, Codable {
         try container.encode(id, forKey: .id)
         try container.encode(title, forKey: .title)
         try container.encode(description, forKey: .description)
-        try container.encode(tags, forKey: .tags)
         try container.encode(lunarDate, forKey: .lunarDate)
         try container.encode(gregorianDate, forKey: .gregorianDate)
         try container.encode(category, forKey: .category)

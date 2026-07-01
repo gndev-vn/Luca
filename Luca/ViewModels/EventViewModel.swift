@@ -18,10 +18,16 @@ class EventViewModel: ObservableObject {
     
     private let dataManager: DataManager
     private let notificationManager: NotificationManager
+    private let settingsManager: SettingsManager
     
-    init(dataManager: DataManager, notificationManager: NotificationManager) {
+    init(
+        dataManager: DataManager,
+        notificationManager: NotificationManager,
+        settingsManager: SettingsManager = UserDefaultsSettingsManager()
+    ) {
         self.dataManager = dataManager
         self.notificationManager = notificationManager
+        self.settingsManager = settingsManager
     }
     
     /// Load all events
@@ -57,12 +63,7 @@ class EventViewModel: ObservableObject {
             try await dataManager.saveEvent(event)
             
             if event.isEnabled {
-                for reminderType in event.reminderSettings {
-                    let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
-                    if !success {
-                        print("Warning: Failed to schedule \(reminderType.displayName) reminder for event: \(event.title)")
-                    }
-                }
+                await scheduleReminders(for: event, respectingCategorySettings: false)
             }
             
             await loadEvents()
@@ -86,21 +87,7 @@ class EventViewModel: ObservableObject {
             try await dataManager.updateEvent(event)
             
             if event.isEnabled {
-                let settings = UserDefaultsSettingsManager().loadSettings()
-                let categoryAllowed: Bool = {
-                    switch event.category {
-                    case .cultural: return settings.culturalNotificationsEnabled
-                    case .religious: return settings.religiousNotificationsEnabled
-                    case .personal: return true
-                    }
-                }()
-                
-                for reminderType in event.reminderSettings where categoryAllowed {
-                    let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
-                    if !success {
-                        print("Warning: Failed to schedule \(reminderType.displayName) reminder for updated event: \(event.title)")
-                    }
-                }
+                await scheduleReminders(for: event, respectingCategorySettings: true)
             }
             
             await loadEvents()
@@ -155,18 +142,7 @@ class EventViewModel: ObservableObject {
             updatedEvent.isEnabled = true
             try await dataManager.updateEvent(updatedEvent)
             
-            let settings = UserDefaultsSettingsManager().loadSettings()
-            let categoryAllowed: Bool = {
-                switch updatedEvent.category {
-                case .cultural: return settings.culturalNotificationsEnabled
-                case .religious: return settings.religiousNotificationsEnabled
-                case .personal: return true
-                }
-            }()
-            
-            for reminderType in updatedEvent.reminderSettings where categoryAllowed {
-                let _ = await notificationManager.scheduleReminder(for: updatedEvent, reminderType: reminderType)
-            }
+            await scheduleReminders(for: updatedEvent, respectingCategorySettings: true)
             
             await loadEvents()
             postEventsChangedNotification()
@@ -197,9 +173,7 @@ class EventViewModel: ObservableObject {
             
             // Re-schedule if enabled
             if updatedEvent.isEnabled && !updatedEvent.reminderSettings.isEmpty {
-                for reminderType in updatedEvent.reminderSettings {
-                    let _ = await notificationManager.scheduleReminder(for: updatedEvent, reminderType: reminderType)
-                }
+                await scheduleReminders(for: updatedEvent, respectingCategorySettings: false)
             }
             
             await loadEvents()
@@ -238,5 +212,30 @@ class EventViewModel: ObservableObject {
         }
         
         return errors
+    }
+
+    private func scheduleReminders(for event: Event, respectingCategorySettings: Bool) async {
+        let settings = settingsManager.loadSettings()
+        guard !respectingCategorySettings || isCategoryAllowed(event.category, with: settings) else {
+            return
+        }
+
+        for reminderType in event.reminderSettings {
+            let success = await notificationManager.scheduleReminder(for: event, reminderType: reminderType)
+            if !success {
+                print("Warning: Failed to schedule \(reminderType.displayName) reminder for event: \(event.title)")
+            }
+        }
+    }
+
+    private func isCategoryAllowed(_ category: EventCategory, with settings: UserSettings) -> Bool {
+        switch category {
+        case .cultural:
+            settings.culturalNotificationsEnabled
+        case .religious:
+            settings.religiousNotificationsEnabled
+        case .personal:
+            true
+        }
     }
 }

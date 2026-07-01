@@ -17,7 +17,6 @@ struct EventFormView: View {
     // Form state
     @State private var title: String
     @State private var description: String
-    @State private var tags: [String]
     @State private var selectedCategory: EventCategory
     @State private var recurrence: RecurrenceType
     @State private var selectedLunarDate: LunarDate
@@ -111,7 +110,6 @@ struct EventFormView: View {
         
         _title = State(initialValue: "")
         _description = State(initialValue: "")
-        _tags = State(initialValue: [])
         _selectedCategory = State(initialValue: .personal)
         _recurrence = State(initialValue: .none)
         _selectedLunarDate = State(initialValue: lunarDate)
@@ -145,7 +143,6 @@ struct EventFormView: View {
         
         _title = State(initialValue: event.title)
         _description = State(initialValue: event.description)
-        _tags = State(initialValue: event.tags)
         _selectedCategory = State(initialValue: event.category)
         _recurrence = State(initialValue: event.recurrence)
         _selectedLunarDate = State(initialValue: event.lunarDate)
@@ -174,7 +171,7 @@ struct EventFormView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 // Title and Description Section
                 Section {
@@ -208,21 +205,6 @@ struct EventFormView: View {
                         .textCase(nil)
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.secondary)
-                }
-
-                // Tags Section
-                if !isPreseeded {
-                    Section {
-                        VStack(alignment: .leading, spacing: 8) {
-                            TagsInputView(tags: $tags)
-                        }
-                        .padding(.vertical, 4)
-                    } header: {
-                        Text(String.localized(.tags))
-                            .textCase(nil)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.secondary)
-                    }
                 }
 
                 // Recurrence Section — placed before date section
@@ -388,7 +370,7 @@ struct EventFormView: View {
                                             .foregroundColor(selectedCategory == category ? .white : Color.categoryColor(category))
                                             .frame(width: 44, height: 44)
                                             .background(selectedCategory == category ? Color.categoryColor(category) : Color.categoryColor(category).opacity(0.12))
-                                            .cornerRadius(12)
+                                            .cornerRadius(AppDesign.cardCornerRadius)
 
                                         Text(category.displayName)
                                             .font(.caption2)
@@ -511,6 +493,8 @@ struct EventFormView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle(isEditing ? String.localized(.editEvent) : String.localized(.newEvent))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -653,7 +637,6 @@ struct EventFormView: View {
                 } else {
                     existingEvent.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
                     existingEvent.description = description.trimmingCharacters(in: .whitespacesAndNewlines)
-                    existingEvent.tags = tags
                     existingEvent.lunarDate = selectedLunarDate
                     existingEvent.category = selectedCategory
                     existingEvent.recurrence = recurrence
@@ -670,7 +653,6 @@ struct EventFormView: View {
                 eventToSave = Event(
                     title: title.trimmingCharacters(in: .whitespacesAndNewlines),
                     description: description.trimmingCharacters(in: .whitespacesAndNewlines),
-                    tags: tags,
                     lunarDate: selectedLunarDate,
                     category: selectedCategory,
                     isPublicHoliday: false,

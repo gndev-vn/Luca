@@ -291,8 +291,6 @@
 "days_before" = "Số ngày trước";
 "cultural_notifications" = "Sự kiện văn hóa";
 "religious_notifications" = "Sự kiện tôn giáo";
-"add_tag_placeholder" = "Thêm thẻ…";
-"tags" = "Thẻ";
 
 // Weekday short names (calendar headers and pickers)
 "weekday_short_1" = "CN";

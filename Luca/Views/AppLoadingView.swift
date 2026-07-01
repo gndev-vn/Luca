@@ -111,7 +111,7 @@ struct AppInitializationErrorView: View {
                     .foregroundColor(.secondary)
                     .padding()
                     .background(Color(.systemGray6))
-                    .cornerRadius(8)
+                    .cornerRadius(AppDesign.cardCornerRadius)
             }
             .padding(.horizontal)
             
