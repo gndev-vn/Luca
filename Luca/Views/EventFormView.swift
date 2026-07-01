@@ -64,6 +64,12 @@ struct EventFormView: View {
     
     private var pickerIsLeap: Bool { pickerMonth > 100 }
     private var pickerActualMonth: Int { pickerIsLeap ? pickerMonth - 100 : pickerMonth }
+    private var dayWheelWidth: CGFloat {
+        horizontalSizeClass == .compact ? 64 : 76
+    }
+    private var yearWheelWidth: CGFloat {
+        horizontalSizeClass == .compact ? 96 : 116
+    }
     
     private var availableYears: [Int] {
         let currentLunarDate = LunarDate.fromGregorian(Date())
@@ -295,6 +301,7 @@ struct EventFormView: View {
                                         }
                                     }
                                     .pickerStyle(.wheel)
+                                    .frame(width: dayWheelWidth)
                                 }
                                 
                                 if recurrence != .weekly && recurrence != .monthly {
@@ -315,6 +322,7 @@ struct EventFormView: View {
                                         }
                                     }
                                     .pickerStyle(.wheel)
+                                    .frame(maxWidth: .infinity)
                                 }
                                 
                                 if recurrence != .weekly && recurrence != .monthly && recurrence != .yearly {
@@ -325,6 +333,7 @@ struct EventFormView: View {
                                         }
                                     }
                                     .pickerStyle(.wheel)
+                                    .frame(width: yearWheelWidth)
                                 }
                             }
                             .frame(height: 160)

@@ -238,21 +238,37 @@ struct MonthYearPickerSheet: View {
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    private let lunarMonths = Array(1...12)
     private var lunarYears: [Int] {
         let currentLunar = LunarDate.fromGregorian(Date())
         let currentTraditional = currentLunar.traditionalYear
         return Array((currentTraditional - 10)...(currentTraditional + 10))
     }
 
+    private var lunarMonths: [Int] {
+        let lunarYear = pickerYear - 1983
+        let leapInfo = LunarCalendarConverter.getLeapMonthInfo(lunarYear)
+        guard leapInfo.hasLeap, leapInfo.leapMonth > 0, leapInfo.leapMonth <= 12 else {
+            return Array(1...12)
+        }
+        var months = Array(1...12)
+        months.insert(leapInfo.leapMonth + 100, at: leapInfo.leapMonth)
+        return months
+    }
+
     @State private var pickerMonth: Int = 1
     @State private var pickerYear: Int = 2025
 
-    private var monthNames: [String] {
-        if horizontalSizeClass == .regular {
-            return LocalizationService.lunarMonthNames()
+    private func monthLabel(for month: Int) -> String {
+        let actualMonth = month > 100 ? month - 100 : month
+        let isLeap = month > 100
+
+        if isLeap {
+            return LocalizedStringService.shared.localizedMonthFormat(actualMonth, isLeap: true)
         }
-        return (1...12).map { LocalizedStringService.shared.localizedMonthFormat($0) }
+        if horizontalSizeClass == .regular {
+            return LocalizedStringService.shared.localizedMonthFull(actualMonth)
+        }
+        return LocalizedStringService.shared.localizedMonthFormat(actualMonth)
     }
 
     var body: some View {
@@ -269,7 +285,7 @@ struct MonthYearPickerSheet: View {
             HStack(spacing: 0) {
                 Picker("", selection: $pickerMonth) {
                     ForEach(lunarMonths, id: \.self) { month in
-                        Text(monthNames[month - 1]).tag(month)
+                        Text(monthLabel(for: month)).tag(month)
                     }
                 }
                 .pickerStyle(.wheel)
@@ -302,17 +318,29 @@ struct MonthYearPickerSheet: View {
         }
         .onAppear {
             let todayLunar = LunarDate.fromGregorian(Date())
-            pickerMonth = todayLunar.month
+            pickerMonth = todayLunar.isLeapMonth ? todayLunar.month + 100 : todayLunar.month
             pickerYear = todayLunar.traditionalYear
         }
         .onChange(of: pickerMonth) { _, _ in updateSelectedDate() }
-        .onChange(of: pickerYear) { _, _ in updateSelectedDate() }
+        .onChange(of: pickerYear) { _, _ in
+            normalizePickerMonth()
+            updateSelectedDate()
+        }
         .background(Color.clear)
+    }
+
+    private func normalizePickerMonth() {
+        let available = lunarMonths
+        if !available.contains(pickerMonth), let fallback = available.first {
+            pickerMonth = fallback
+        }
     }
 
     private func updateSelectedDate() {
         let lunarYear = pickerYear - 1983
-        let lunar = LunarDate(year: lunarYear, month: pickerMonth, day: 1, isLeapMonth: false)
+        let isLeapMonth = pickerMonth > 100
+        let month = isLeapMonth ? pickerMonth - 100 : pickerMonth
+        let lunar = LunarDate(year: lunarYear, month: month, day: 1, isLeapMonth: isLeapMonth)
         selectedDate = lunar.toGregorian()
     }
 }
