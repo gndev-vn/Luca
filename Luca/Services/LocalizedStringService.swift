@@ -331,4 +331,7 @@ enum LocalizedStringKey: String, CaseIterable {
     case recurrenceWeeklyFormat = "recurrence_weekly_format"
     case recurrenceMonthlyFormat = "recurrence_monthly_format"
     case recurrenceYearlyFormat = "recurrence_yearly_format"
+
+    case muteNotifications = "mute_notifications"
+    case unmuteNotifications = "unmute_notifications"
 }

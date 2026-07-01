@@ -553,7 +553,7 @@ struct CalendarGridView: View {
         let holidaysMap = holidaysByDate()
         VStack(spacing: 0) {
             // Weekday headers
-            LazyVGrid(columns: columns, spacing: 0) {
+            LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(Array(zip(1...7, ultraShortWeekdaySymbols)), id: \.0) { i, symbol in
                     let text = horizontalSizeClass == .regular
                         ? LocalizedStringService.shared.localizedWeekdayFull(i)
@@ -564,10 +564,10 @@ struct CalendarGridView: View {
                         .foregroundColor(.secondary)
                         .frame(height: weekdayHeaderHeight)
                 }
-            }.padding(.vertical, 12)
+            }.padding(.vertical, 8)
 
             // Calendar dates
-            LazyVGrid(columns: columns, spacing: 0) {
+            LazyVGrid(columns: columns, spacing: 2) {
                 ForEach(datesInMonth, id: \.self) { date in
                     let dateEvents = eventsMap[date] ?? []
                     let dateHolidays = holidaysMap[date] ?? []
@@ -667,15 +667,16 @@ struct CalendarDateView: View {
     private var totalCount: Int { events.count + holidays.count }
 
     var body: some View {
-        VStack(spacing: 1) {
+        VStack(spacing: 0) {
             Text("\(lunarDate?.day ?? 0)")
                 .font(.system(size: 17, weight: .medium, design: .rounded))
                 .foregroundColor(primaryTextColor)
-                .frame(height: 36)
+                .frame(height: 28)
 
             Text(SharedDateFormatters.dayNumber.string(from: date))
-                .font(.system(size: 9, weight: .regular))
+                .font(.system(size: 10, weight: .regular))
                 .foregroundColor(secondaryTextColor)
+                .padding(.bottom, 2)
 
             // Event title chips (up to 2)
             if totalCount > 0 {

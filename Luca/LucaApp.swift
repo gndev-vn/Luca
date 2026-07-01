@@ -7,9 +7,36 @@
 
 import SwiftUI
 import UserNotifications
+import Combine
+import AppIntents
+import ObjectiveC
+
+// MARK: - Quick Action Handler
+
+/// Shared observable object that bridges AppIntents to SwiftUI views
+@MainActor
+class QuickActionHandler: ObservableObject {
+    static let shared = QuickActionHandler()
+    @Published var pendingAction: QuickActionType?
+    
+    func handle(_ action: QuickActionType) {
+        pendingAction = action
+    }
+}
+
+/// Quick action types for home screen shortcuts
+enum QuickActionType: String {
+    case createEvent = "create-event"
+    case toggleNotifications = "toggle-notifications"
+}
 
 @main
 struct LucaApp: App {
+    
+    // MARK: - Quick Actions
+    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var quickActionHandler = QuickActionHandler.shared
     
     // MARK: - Services
     
@@ -94,6 +121,7 @@ struct LucaApp: App {
             )
                 .environmentObject(coreDataStack)
                 .environmentObject(initializationService)
+                .environmentObject(quickActionHandler)
                 .environment(\.themeManager, themeManager)
                 .environment(\.accessibilityManager, accessibilityManager)
                 .preferredColorScheme(themeManager.preferredColorScheme)
@@ -259,5 +287,111 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     /// Clear badge when app becomes active
     func clearBadge() {
         UIApplication.shared.applicationIconBadgeNumber = 0
+    }
+}
+
+// MARK: - Quick Actions - AppDelegate
+
+/// Minimal app delegate for cold-launch quick action handling
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        DispatchQueue.main.async {
+            self.injectSceneQuickActionHandler()
+        }
+        return true
+    }
+    
+    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        if let type = QuickActionType(rawValue: shortcutItem.type) {
+            Task { @MainActor in
+                QuickActionHandler.shared.handle(type)
+                completionHandler(true)
+            }
+        } else {
+            completionHandler(false)
+        }
+    }
+    
+    private func injectSceneQuickActionHandler() {
+        guard let scene = UIApplication.shared.connectedScenes.first,
+              let delegate = scene.delegate else { return }
+        let cls: AnyClass = type(of: delegate)
+        let selector = NSSelectorFromString("windowScene:performActionForShortcutItem:completionHandler:")
+        let block: @convention(block) (NSObject, UIWindowScene, UIApplicationShortcutItem, @escaping (Bool) -> Void) -> Void = { _, _, shortcutItem, completionHandler in
+            if let type = QuickActionType(rawValue: shortcutItem.type) {
+                Task { @MainActor in
+                    QuickActionHandler.shared.handle(type)
+                }
+            }
+            completionHandler(true)
+        }
+        let imp = imp_implementationWithBlock(block)
+        if let existingMethod = class_getInstanceMethod(cls, selector) {
+            method_setImplementation(existingMethod, imp)
+        } else {
+            class_addMethod(cls, selector, imp, "v@:@@@?")
+        }
+    }
+}
+
+// MARK: - AppIntents (iOS 17+ Home Screen Quick Actions)
+
+/// Provides home screen icon menu items via the App Intents framework
+public struct LucaQuickActions: AppShortcutsProvider {
+    public static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: CreateEventIntent(),
+            phrases: ["Create event in \(.applicationName)"],
+            shortTitle: LocalizedStringResource("Create Event", comment: "Home screen quick action"),
+            systemImageName: "plus.circle"
+        )
+        AppShortcut(
+            intent: MuteNotificationsIntent(),
+            phrases: ["Mute notifications in \(.applicationName)"],
+            shortTitle: LocalizedStringResource("Mute Notifications", comment: "Home screen quick action"),
+            systemImageName: "bell.slash"
+        )
+        AppShortcut(
+            intent: UnmuteNotificationsIntent(),
+            phrases: ["Unmute notifications in \(.applicationName)"],
+            shortTitle: LocalizedStringResource("Unmute Notifications", comment: "Home screen quick action"),
+            systemImageName: "bell"
+        )
+    }
+}
+
+/// Opens the event creation form
+@objc public final class CreateEventIntent: NSObject, AppIntent {
+    public static var title: LocalizedStringResource = "Create Event"
+    public static var openAppWhenRun: Bool = true
+
+    @MainActor
+    public func perform() async throws -> some IntentResult {
+        QuickActionHandler.shared.handle(.createEvent)
+        return .result()
+    }
+}
+
+/// Mutes notifications
+@objc public final class MuteNotificationsIntent: NSObject, AppIntent {
+    public static var title: LocalizedStringResource = "Mute Notifications"
+    public static var openAppWhenRun: Bool = true
+
+    @MainActor
+    public func perform() async throws -> some IntentResult {
+        QuickActionHandler.shared.handle(.toggleNotifications)
+        return .result()
+    }
+}
+
+/// Unmutes notifications
+@objc public final class UnmuteNotificationsIntent: NSObject, AppIntent {
+    public static var title: LocalizedStringResource = "Unmute Notifications"
+    public static var openAppWhenRun: Bool = true
+
+    @MainActor
+    public func perform() async throws -> some IntentResult {
+        QuickActionHandler.shared.handle(.toggleNotifications)
+        return .result()
     }
 }

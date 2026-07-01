@@ -119,25 +119,6 @@ struct AboutView: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(12)
                 
-                // Credits
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(localized: .creditsTitle)
-                        .font(.headline.weight(.bold))
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(localized: .creditCalcAlgo)
-                        Text(localized: .creditHolidayData)
-                        Text(localized: .creditCommunity)
-                        Text(localized: .creditSwiftUI)
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-                
                 // Legal
                 VStack(alignment: .leading, spacing: 12) {
                     Text(localized: .legalTitle)

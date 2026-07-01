@@ -165,7 +165,7 @@
 // Onboarding
 "back" = "Quay lại";
 "welcome_to_luca" = "Chào mừng đến với Luca";
-"onboarding_welcome_description" = "Theo dõi các sự kiện âm lịch như các ngày lễ, ngày cúng rằm, cúng mồng 1, lễ Phật đản hoặc các sự kiện cá nhân như ngày giỗ ...";
+"onboarding_welcome_description" = "Theo dõi các sự kiện âm lịch như các ngày lễ, ngày cúng rằm, lễ Phật đản hoặc các sự kiện cá nhân như ngày giỗ ...";
 "get_started" = "Bắt đầu";
 "continue_action" = "Tiếp tục";
 "enable_notifications" = "Bật thông báo";
@@ -179,13 +179,13 @@
 "powerful_features" = "Tính năng nổi bật";
 "features_description" = "Khám phá những gì làm cho Luca trở nên đặc biệt.";
 "unified_calendar" = "Lịch âm";
-"unified_calendar_desc" = "Xem tháng âm lịch đầy đủ với hoàng đạo và năm con giáp";
-"cultural_holidays" = "Ngày lễ Việt Nam";
-"cultural_holidays_desc" = "Tết, Rằm, Mồng Một & các ngày lễ Phật giáo";
+"unified_calendar_desc" = "Xem tháng âm lịch đầy đủ với hoàng đạo, năm con giáp và chi tiết từng ngày";
+"cultural_holidays" = "Ngày lễ & nghi lễ";
+"cultural_holidays_desc" = "Tết, Rằm, Mồng Một, ngày lễ Phật giáo và các nghi lễ hàng tháng được tích hợp sẵn";
 "custom_events" = "Sự kiện cá nhân";
-"custom_events_desc" = "Tạo sự kiện với thẻ, danh mục & lặp lại";
+"custom_events_desc" = "Tạo, chỉnh sửa, vô hiệu hóa hoặc xóa sự kiện với thẻ, danh mục và lịch lặp lại";
 "smart_reminders" = "Thông báo nhắc nhở";
-"smart_reminders_desc" = "Nhắc trong ngày & trước ngày với âm thanh và rung";
+"smart_reminders_desc" = "Nhắc trong ngày & trước ngày với âm thanh, rung và kiểm soát theo danh mục";
 "youre_all_set" = "Bạn đã sẵn sàng!";
 "start_using_luca" = "Bắt đầu sử dụng Luca";
 "onboarding_personal_event_reminders" = "Nhắc nhở sự kiện âm lịch cá nhân";
@@ -197,15 +197,8 @@
 
 // About
 "about_luca" = "Về Luca";
-"about_description" = "Theo dõi ngày âm lịch, ngày lễ và sự kiện cá nhân của Việt Nam với nhắc nhở thông minh. Hỗ trợ đầy đủ tiếng Việt và tiếng Anh.";
+"about_description" = "Theo dõi ngày âm lịch, ngày lễ và sự kiện cá nhân của Việt Nam với tuỳ chọn thông báo nhắc nhở. Hỗ trợ đầy đủ tiếng Việt.";
 "features_title" = "Tính năng";
-"vietnamese_lunar_calendar" = "Đa ngôn ngữ";
-"vietnamese_calendar_desc" = "Tiếng Việt & tiếng Anh với chuyển đổi ngôn ngữ trong ứng dụng";
-"credits_title" = "Ghi nhận";
-"credit_calc_algo" = "• Tính toán âm lịch dựa trên thuật toán thiên văn";
-"credit_holiday_data" = "• Dữ liệu ngày lễ từ lịch chính thống Việt Nam";
-"credit_community" = "• Phản hồi và đóng góp văn hóa từ cộng đồng";
-"credit_swift_ui" = "• Xây dựng với SwiftUI và các framework iOS hiện đại";
 "legal_title" = "Pháp lý";
 "privacy_policy" = "Chính sách bảo mật";
 "privacy_policy_desc" = "Tất cả dữ liệu được lưu trên thiết bị — không thu thập thông tin";
@@ -343,3 +336,12 @@
 "reset_all_settings_warning" = "Thao tác này sẽ đặt lại tất cả tùy chọn bao gồm ngôn ngữ, giao diện và cài đặt thông báo về mặc định.";
 "settings_saved" = "Đã lưu cài đặt";
 "settings_reset" = "Đã đặt lại cài đặt về mặc định";
+
+// Quick Actions (Home Screen)
+"mute_notifications" = "Tắt thông báo";
+"unmute_notifications" = "Bật thông báo";
+
+// AppShortcutsProvider titles (used by AppIntents framework)
+"Create Event" = "Tạo sự kiện";
+"Mute Notifications" = "Tắt thông báo";
+"Unmute Notifications" = "Bật thông báo";

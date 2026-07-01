@@ -17,6 +17,9 @@ struct ContentView: View {
     private let settingsManager: SettingsManager
     private let themeManager: ThemeManager
     
+    // Quick action handler
+    @EnvironmentObject private var quickActionHandler: QuickActionHandler
+    
     // Navigation state
     @StateObject private var navigationCoordinator = NavigationCoordinator()
     @State private var selectedTab: AppTab = .calendar
@@ -169,6 +172,15 @@ struct ContentView: View {
 
         .onAppear {
             setupApp()
+            if let action = quickActionHandler.pendingAction {
+                quickActionHandler.pendingAction = nil
+                executeQuickAction(action)
+            }
+        }
+        .onChange(of: quickActionHandler.pendingAction) { _, action in
+            guard let action else { return }
+            quickActionHandler.pendingAction = nil
+            executeQuickAction(action)
         }
         .onReceive(NotificationCenter.default.publisher(for: .deepLinkReceived)) { notification in
             handleDeepLink(notification)
@@ -224,7 +236,29 @@ struct ContentView: View {
         // Process any pending deep links
         processPendingDeepLink()
     }
-    
+
+    /// Execute a quick action
+    private func executeQuickAction(_ type: QuickActionType) {
+        if type == .toggleNotifications {
+            toggleNotifications()
+            return
+        }
+        guard navigationCoordinator.isReady else { return }
+        selectedTab = .events
+        DispatchQueue.main.async {
+            self.navigationCoordinator.navigateToCreateEvent(date: Date())
+        }
+    }
+
+    /// Toggle notification setting from quick action and navigate to settings
+    private func toggleNotifications() {
+        var settings = UserDefaultsSettingsManager().loadSettings()
+        settings.notificationsEnabled.toggle()
+        UserDefaultsSettingsManager().saveSettings(settings)
+        NotificationCenter.default.post(name: .settingsDidChange, object: nil)
+        selectedTab = .settings
+    }
+
     /// Handle deep link notifications
     private func handleDeepLink(_ notification: Notification) {
         guard let deepLink = notification.userInfo?["deepLink"] as? DeepLink else { return }
@@ -496,6 +530,7 @@ class NavigationCoordinator: ObservableObject {
 extension Notification.Name {
     static let deepLinkReceived = Notification.Name("deepLinkReceived")
     static let eventsDidChange = Notification.Name("eventsDidChange")
+    static let settingsDidChange = Notification.Name("settingsDidChange")
 }
 
 // MARK: - Event Placeholder

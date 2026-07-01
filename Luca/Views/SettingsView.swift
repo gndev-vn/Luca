@@ -173,6 +173,9 @@ struct SettingsView: View {
             viewModel.loadSettings()
             loadNotificationData()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .settingsDidChange)) { _ in
+            loadNotificationData()
+        }
     }
     
     private func loadNotificationData() {
