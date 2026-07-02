@@ -174,7 +174,6 @@ struct ContentView: View {
         .environmentObject(navigationCoordinator)
 
         .onAppear {
-            setupApp()
             if let action = quickActionHandler.pendingAction {
                 quickActionHandler.pendingAction = nil
                 executeQuickAction(action)
@@ -184,12 +183,6 @@ struct ContentView: View {
             guard let action else { return }
             quickActionHandler.pendingAction = nil
             executeQuickAction(action)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .deepLinkReceived)) { notification in
-            handleDeepLink(notification)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            handleAppBecameActive()
         }
         .onChange(of: selectedTab) { _, newTab in
             navigationCoordinator.currentTab = newTab

@@ -18,6 +18,14 @@ enum SharedDateFormatters {
         return f
     }()
 
+    /// "dd/MM" with Vietnamese locale
+    static let ddMM: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "vi_VN")
+        f.dateFormat = "dd/MM"
+        return f
+    }()
+
     /// Medium date style with Vietnamese locale
     static let mediumDateVi: DateFormatter = {
         let f = DateFormatter()

@@ -48,7 +48,7 @@ struct CalendarView: View {
                         selectedDate: viewModel.selectedDate,
                         customEventsProvider: { date in viewModel.customEvents(for: date) },
                         holidayEventsProvider: { date in viewModel.holidayEvents(for: date) },
-                        availableHeight: geometry.size.height,
+                        availableHeight: max(0, geometry.size.height - 16),
                         onDateSelected: { date in
                             viewModel.selectDate(date)
                             showingDayEvents = true
@@ -84,7 +84,7 @@ struct CalendarView: View {
             )
         }
         .padding(.horizontal, 12)
-        .padding(.bottom, 6)
+        .padding(.bottom, 20)
         .background(Color(.systemGroupedBackground))
         .navigationTitle(String.localized(.lunarCalendar))
         .navigationBarTitleDisplayMode(.large)
@@ -118,7 +118,7 @@ struct CalendarView: View {
             MonthYearPickerSheet(selectedDate: $viewModel.currentDate)
             .presentationDetents([.height(320)])
             .presentationDragIndicator(.visible)
-            .presentationBackground(.thinMaterial)
+            .presentationBackground(.regularMaterial)
         }
     }
 
@@ -148,11 +148,12 @@ struct CalendarView: View {
                     HStack(spacing: 6) {
                         if let lunarDate = viewModel.currentLunarDate {
                             Text(lunarContextTitle(lunarDate))
-                                .font(.system(.headline, design: .rounded))
+                                .font(.system(horizontalSizeClass == .compact ? .subheadline : .headline, design: .rounded))
                                 .fontWeight(.semibold)
                                 .foregroundColor(.primary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
+                                .lineLimit(horizontalSizeClass == .compact ? 2 : 1)
+                                .minimumScaleFactor(0.8)
+                                .multilineTextAlignment(.leading)
                             if lunarDate.isLeapMonth {
                                 Text(LocalizationService.leapMonthIndicator())
                                     .font(.caption2)
@@ -171,6 +172,7 @@ struct CalendarView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 10)
@@ -215,18 +217,24 @@ struct CalendarView: View {
             lastGregorian = cursor
         }
 
+        if horizontalSizeClass == .compact {
+            let shortFmt = SharedDateFormatters.ddMM
+            let endFmt = SharedDateFormatters.ddMMyyyy
+            return "\(String.localized(.gregorian)): \(shortFmt.string(from: firstGregorian)) – \(endFmt.string(from: lastGregorian))"
+        }
+
         let fmt = SharedDateFormatters.ddMMyyyy
         return "\(String.localized(.gregorian)): \(fmt.string(from: firstGregorian)) – \(fmt.string(from: lastGregorian))"
     }
 
     private func lunarContextTitle(_ lunarDate: LunarDate) -> String {
-        let monthName: String
         if horizontalSizeClass == .regular {
-            monthName = LocalizedStringService.shared.localizedMonthFull(lunarDate.month)
-        } else {
-            monthName = LocalizedStringService.shared.localizedMonthFormat(lunarDate.month)
+            let monthName = LocalizedStringService.shared.localizedMonthFull(lunarDate.month)
+            return "\(monthName), \(lunarDate.fullYearDisplay())"
         }
-        return "\(monthName) \(lunarDate.fullYearDisplay())"
+
+        let monthName = LocalizedStringService.shared.localizedMonthFormat(lunarDate.month)
+        return "\(monthName), \(lunarDate.traditionalYear)"
     }
 }
 
@@ -273,14 +281,16 @@ struct MonthYearPickerSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(String.localized(.selectLunarMonth))
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.primary)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 28)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(String.localized(.selectLunarMonth))
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
+
+            Divider()
+                .padding(.horizontal, 20)
 
             HStack(spacing: 0) {
                 Picker("", selection: $pickerMonth) {
@@ -291,7 +301,6 @@ struct MonthYearPickerSheet: View {
                 .pickerStyle(.wheel)
                 .frame(maxWidth: .infinity)
                 .clipped()
-                .background(Color.clear)
 
                 Picker("", selection: $pickerYear) {
                     ForEach(lunarYears, id: \.self) { year in
@@ -301,20 +310,8 @@ struct MonthYearPickerSheet: View {
                 .pickerStyle(.wheel)
                 .frame(maxWidth: 120)
                 .clipped()
-                .background(Color.clear)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 18)
-            .padding(.bottom, 8)
-            .background(
-                RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-            )
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 8)
         }
         .onAppear {
             let todayLunar = LunarDate.fromGregorian(Date())
@@ -326,7 +323,6 @@ struct MonthYearPickerSheet: View {
             normalizePickerMonth()
             updateSelectedDate()
         }
-        .background(Color.clear)
     }
 
     private func normalizePickerMonth() {
@@ -358,7 +354,8 @@ struct DateDetailBottomSheet: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 14) {
+            VStack(spacing: 0) {
+                // ── Header ───────────────────────────────────────────
                 HStack(spacing: 14) {
                     ZStack {
                         Circle()
@@ -369,25 +366,34 @@ struct DateDetailBottomSheet: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(width: 64, height: 64)
+                            .frame(
+                                width: horizontalSizeClass == .compact ? 56 : 64,
+                                height: horizontalSizeClass == .compact ? 56 : 64
+                            )
                         Text(lunarDate.map { "\($0.day)" } ?? dayNumber)
-                            .font(.system(size: 27, weight: .bold, design: .rounded))
+                            .font(.system(size: horizontalSizeClass == .compact ? 24 : 27, weight: .bold, design: .rounded))
                             .foregroundColor(.primary)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         if let lunarDate = lunarDate {
                             Text(lunarMonthYearLine(lunarDate))
-                                .font(.title3.weight(.semibold))
+                                .font(horizontalSizeClass == .compact ? .title2.weight(.semibold) : .title3.weight(.semibold))
+                                .lineLimit(horizontalSizeClass == .compact ? 2 : 1)
+                                .minimumScaleFactor(0.82)
 
                             Text(lunarDayLine(lunarDate))
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.9)
 
                             HStack(spacing: 6) {
                                 Text(String(format: String.localized(.correspondingGregorian), gregorianFormattedDate))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
 
                                 if lunarDate.isLeapMonth {
                                     Text(LocalizationService.leapMonthIndicator())
@@ -408,7 +414,7 @@ struct DateDetailBottomSheet: View {
 
                     Spacer()
 
-                    if !events.isEmpty {
+                    if !events.isEmpty && horizontalSizeClass == .regular {
                         Label("\(events.count)", systemImage: "calendar.badge.clock")
                             .font(.caption.weight(.semibold))
                             .foregroundColor(.accentColor)
@@ -417,9 +423,26 @@ struct DateDetailBottomSheet: View {
                             .background(Color.accentColor.opacity(0.12), in: Capsule())
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
+                .padding(.horizontal, 20)
+                .padding(.top, 24)
+                .padding(.bottom, horizontalSizeClass == .compact && !events.isEmpty ? 8 : 16)
+
+                if horizontalSizeClass == .compact && !events.isEmpty {
+                    HStack {
+                        Label("\(events.count)", systemImage: "calendar.badge.clock")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.accentColor.opacity(0.12), in: Capsule())
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 8)
+                }
+
+                Divider()
+                    .padding(.horizontal, 20)
 
                 // ── Event List ───────────────────────────────────────
                 if events.isEmpty {
@@ -433,7 +456,6 @@ struct DateDetailBottomSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 36)
-                    .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
                 } else {
                     LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(events) { event in
@@ -442,14 +464,14 @@ struct DateDetailBottomSheet: View {
                                 .onTapGesture { selectedEvent = event }
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 14)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
             .padding(.bottom, 20)
         }
         .scrollIndicators(.hidden)
-        .background(Color(.systemGroupedBackground))
+        .presentationBackground(.regularMaterial)
         .sheet(item: $selectedEvent) { event in
             EventDetailSheet(event: event)
         }
@@ -467,13 +489,13 @@ struct DateDetailBottomSheet: View {
 
     /// "Tháng Năm, Ất Tỵ (2025)" (regular) / "Tháng 5 Ất Tỵ (2025)" (compact)
     private func lunarMonthYearLine(_ lunarDate: LunarDate) -> String {
-        let monthName: String
         if horizontalSizeClass == .regular {
-            monthName = LocalizedStringService.shared.localizedMonthFull(lunarDate.month)
+            let monthName = LocalizedStringService.shared.localizedMonthFull(lunarDate.month)
             return "\(monthName), \(lunarDate.fullYearDisplay())"
         }
-        monthName = LocalizedStringService.shared.localizedMonthFormat(lunarDate.month)
-        return "\(monthName) \(lunarDate.fullYearDisplay())"
+
+        let monthName = LocalizedStringService.shared.localizedMonthFormat(lunarDate.month)
+        return "\(monthName), \(lunarDate.traditionalYear)"
     }
 
     /// "Ngày Giáp Dần, Tháng Quý Tỵ"
@@ -494,10 +516,9 @@ struct DayEventRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Category dot
             Circle()
                 .fill(categoryColor)
-                .frame(width: 10, height: 10)
+                .frame(width: 8, height: 8)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
@@ -537,11 +558,9 @@ struct DayEventRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundColor(.secondary.opacity(0.5))
+                .foregroundColor(.secondary.opacity(0.4))
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
+        .padding(.vertical, 10)
     }
 
     private var categoryColor: Color {
@@ -571,7 +590,6 @@ struct CalendarGridView: View {
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     private let weekdayHeaderHeight: CGFloat = 20
-    private let verticalPadding: CGFloat = 8
     private let ultraShortWeekdaySymbols = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
 
     private var displayedLunarMonth: LunarDate {
@@ -580,8 +598,15 @@ struct CalendarGridView: View {
 
     private var cellHeight: CGFloat {
         let rows: CGFloat = 6
-        let usable = availableHeight - weekdayHeaderHeight - verticalPadding
-        return max(40, usable / rows)
+        // All fixed vertical space consumed by non-cell content:
+        //   weekday frame: 20 (weekdayHeaderHeight)
+        //   weekday .padding(.vertical, 8): 8 + 8 = 16
+        //   grid  .padding(.top, 6) + .padding(.bottom, 10): 16
+        //   row spacing (6-1) × 2: 10
+        //   small buffer: 4
+        let overhead: CGFloat = weekdayHeaderHeight + 16 + 16 + 10 + 4
+        let usable = availableHeight - overhead
+        return max(36, usable / rows)
     }
 
     var body: some View {
@@ -633,7 +658,7 @@ struct CalendarGridView: View {
         .padding(.horizontal, 8)
         .padding(.top, 6)
         .padding(.bottom, 10)
-        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
     }
 
     private var datesInMonth: [Date] {

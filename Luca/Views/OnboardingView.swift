@@ -190,6 +190,7 @@ struct PermissionsStepView: View {
     let notificationManager: NotificationManager
     let settingsManager: SettingsManager
     let onNext: () -> Void
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @State private var notificationPermissionGranted = false
     @State private var isRequestingPermission = false
@@ -201,11 +202,11 @@ struct PermissionsStepView: View {
                     // Header
                     VStack(spacing: 16) {
                         Image(systemName: "bell.circle.fill")
-                            .font(.system(size: 60))
+                            .font(.system(size: horizontalSizeClass == .compact ? 56 : 60))
                             .foregroundColor(.orange)
                         
                         Text(localized: .enableNotifications)
-                            .font(.largeTitle)
+                            .font(horizontalSizeClass == .compact ? .title.weight(.bold) : .largeTitle.weight(.bold))
                             .fontWeight(.bold)
                             .multilineTextAlignment(.center)
                         
@@ -213,7 +214,10 @@ struct PermissionsStepView: View {
                             .font(.body)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.secondary)
+                            .lineLimit(horizontalSizeClass == .compact ? 3 : nil)
+                            .minimumScaleFactor(0.9)
                     }
+                    .frame(maxWidth: 440)
                     
                     // Permission Benefits
                     VStack(spacing: 16) {
@@ -436,26 +440,34 @@ struct PermissionBenefit: View {
     let icon: String
     let title: String
     let description: String
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .foregroundColor(.orange)
-                .font(.title2)
-                .frame(width: 32)
+                .font(horizontalSizeClass == .compact ? .title3 : .title2)
+                .frame(width: horizontalSizeClass == .compact ? 28 : 32)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.subheadline)
+                    .font(horizontalSizeClass == .compact ? .callout : .subheadline)
                     .fontWeight(.semibold)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.9)
                 
                 Text(description)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .lineLimit(horizontalSizeClass == .compact ? 2 : 3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
             Spacer()
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
     }
 }
 

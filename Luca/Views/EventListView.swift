@@ -46,7 +46,7 @@ struct EventListView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color(.tertiarySystemFill))
                 .cornerRadius(AppDesign.cardCornerRadius)
                 
                 // Filter tabs
@@ -87,8 +87,8 @@ struct EventListView: View {
             }
             .padding(.horizontal, 12)
             .padding(.top, 10)
-            .padding(.bottom, 2)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
+            .padding(.bottom, 10)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous))
             .padding(.horizontal, 12)
             
             // Page content
