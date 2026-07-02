@@ -15,7 +15,6 @@ struct ContentView: View {
     private let dataManager: DataManager
     private let notificationManager: NotificationManager
     private let settingsManager: SettingsManager
-    private let themeManager: ThemeManager
     
     // Quick action handler
     @EnvironmentObject private var quickActionHandler: QuickActionHandler
@@ -27,6 +26,7 @@ struct ContentView: View {
     
     // Deep linking state
     @State private var pendingDeepLink: DeepLink?
+    @State private var pendingQuickAction: QuickActionType?
     
     // Onboarding state
     @State private var showingOnboarding = false
@@ -42,8 +42,7 @@ struct ContentView: View {
             lunarCalendarService: DefaultLunarCalendarService(),
             dataManager: DefaultDataManager(coreDataStack: CoreDataStack.shared),
             notificationManager: DefaultNotificationManager(),
-            settingsManager: settingsManager,
-            themeManager: ThemeManager(settingsManager: settingsManager)
+            settingsManager: settingsManager
         )
     }
 
@@ -51,14 +50,12 @@ struct ContentView: View {
         lunarCalendarService: LunarCalendarService,
         dataManager: DataManager,
         notificationManager: NotificationManager,
-        settingsManager: SettingsManager,
-        themeManager: ThemeManager
+        settingsManager: SettingsManager
     ) {
         self.lunarCalendarService = lunarCalendarService
         self.dataManager = dataManager
         self.notificationManager = notificationManager
         self.settingsManager = settingsManager
-        self.themeManager = themeManager
     }
     
     var body: some View {
@@ -86,6 +83,9 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             handleAppBecameActive()
+        }
+        .onChange(of: showingOnboarding) { _, _ in
+            processPendingQuickActionIfReady()
         }
         .fullScreenCover(isPresented: $showingOnboarding) {
             OnboardingView(
@@ -175,14 +175,17 @@ struct ContentView: View {
 
         .onAppear {
             if let action = quickActionHandler.pendingAction {
-                quickActionHandler.pendingAction = nil
-                executeQuickAction(action)
+                handleQuickAction(action)
             }
+            processPendingQuickActionIfReady()
         }
         .onChange(of: quickActionHandler.pendingAction) { _, action in
             guard let action else { return }
-            quickActionHandler.pendingAction = nil
-            executeQuickAction(action)
+            handleQuickAction(action)
+        }
+        .onReceive(navigationCoordinator.$isReady.removeDuplicates()) { isReady in
+            guard isReady else { return }
+            processPendingQuickActionIfReady()
         }
         .onChange(of: selectedTab) { _, newTab in
             navigationCoordinator.currentTab = newTab
@@ -239,11 +242,30 @@ struct ContentView: View {
             toggleNotifications()
             return
         }
-        guard navigationCoordinator.isReady else { return }
-        selectedTab = .events
-        DispatchQueue.main.async {
-            self.navigationCoordinator.navigateToCreateEvent(date: Date())
+        guard canExecuteNavigationActions else {
+            pendingQuickAction = type
+            return
         }
+        navigateToCreateEvent(date: Date())
+    }
+
+    private func handleQuickAction(_ action: QuickActionType) {
+        quickActionHandler.pendingAction = nil
+        executeQuickAction(action)
+    }
+
+    private var canExecuteNavigationActions: Bool {
+        guard navigationCoordinator.isReady, !showingOnboarding else { return false }
+        if case .completed = initializationService.initializationState {
+            return true
+        }
+        return false
+    }
+
+    private func processPendingQuickActionIfReady() {
+        guard canExecuteNavigationActions, let action = pendingQuickAction else { return }
+        pendingQuickAction = nil
+        executeQuickAction(action)
     }
 
     /// Toggle notification setting from quick action and navigate to settings
@@ -311,7 +333,15 @@ struct ContentView: View {
     /// Navigate to create event with pre-selected date
     private func navigateToCreateEvent(date: Date) {
         selectedTab = .events
-        navigationCoordinator.navigateToCreateEvent(date: date)
+        Task { @MainActor in
+            // Let TabView switch tabs before presenting the create form sheet.
+            await Task.yield()
+            NotificationCenter.default.post(
+                name: .openCreateEventForm,
+                object: nil,
+                userInfo: ["initialDate": date]
+            )
+        }
     }
     
     // MARK: - Destination Views
@@ -345,16 +375,6 @@ struct ContentView: View {
                 eventId: eventId,
                 dataManager: dataManager,
                 notificationManager: notificationManager,
-                lunarCalendarService: lunarCalendarService
-            )
-        case .createEvent(_):
-            EventFormView(
-                viewModel: EventViewModel(dataManager: dataManager, notificationManager: notificationManager),
-                lunarCalendarService: lunarCalendarService
-            )
-        case .eventList(_):
-            EventListView(
-                viewModel: EventViewModel(dataManager: dataManager, notificationManager: notificationManager),
                 lunarCalendarService: lunarCalendarService
             )
         }
@@ -425,8 +445,6 @@ enum CalendarDestination: Hashable {
 /// Events navigation destinations
 enum EventDestination: Hashable {
     case eventDetail(UUID)
-    case createEvent(Date?)
-    case eventList(EventCategory?)
 }
 
 /// Settings navigation destinations
@@ -495,12 +513,6 @@ class NavigationCoordinator: ObservableObject {
         }
     }
 
-    /// Navigate to create event
-    func navigateToCreateEvent(date: Date) {
-        currentEventId = nil
-        eventsPath.append(EventDestination.createEvent(date))
-    }
-    
     /// Clear all navigation paths
     func clearAllPaths() {
         calendarPath = NavigationPath()
@@ -527,6 +539,7 @@ extension Notification.Name {
     static let deepLinkReceived = Notification.Name("deepLinkReceived")
     static let eventsDidChange = Notification.Name("eventsDidChange")
     static let settingsDidChange = Notification.Name("settingsDidChange")
+    static let openCreateEventForm = Notification.Name("openCreateEventForm")
 }
 
 // MARK: - Event Placeholder

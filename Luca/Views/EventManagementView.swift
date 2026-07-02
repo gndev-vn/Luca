@@ -11,17 +11,14 @@ import SwiftUI
 struct EventManagementView: View {
     @StateObject private var eventViewModel: EventViewModel
     @State private var showingEventForm = false
+    @State private var createEventInitialDate: Date?
     
     private let lunarCalendarService: LunarCalendarService
-    private let dataManager: DataManager
-    private let notificationManager: NotificationManager
     
     init(lunarCalendarService: LunarCalendarService,
          dataManager: DataManager,
          notificationManager: NotificationManager) {
         self.lunarCalendarService = lunarCalendarService
-        self.dataManager = dataManager
-        self.notificationManager = notificationManager
         
         self._eventViewModel = StateObject(wrappedValue: EventViewModel(
             dataManager: dataManager,
@@ -37,16 +34,24 @@ struct EventManagementView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showingEventForm = true }) {
+                Button(action: {
+                    createEventInitialDate = nil
+                    showingEventForm = true
+                }) {
                     Image(systemName: "plus.circle")
                         .font(.title2)
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openCreateEventForm)) { notification in
+            createEventInitialDate = notification.userInfo?["initialDate"] as? Date
+            showingEventForm = true
+        }
         .sheet(isPresented: $showingEventForm) {
             EventFormView(
                 viewModel: eventViewModel,
-                lunarCalendarService: lunarCalendarService
+                lunarCalendarService: lunarCalendarService,
+                initialDate: createEventInitialDate
             )
         }
     }

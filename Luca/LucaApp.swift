@@ -9,7 +9,6 @@ import SwiftUI
 import UserNotifications
 import Combine
 import AppIntents
-import ObjectiveC
 
 // MARK: - Quick Action Handler
 
@@ -18,8 +17,16 @@ import ObjectiveC
 class QuickActionHandler: ObservableObject {
     static let shared = QuickActionHandler()
     @Published var pendingAction: QuickActionType?
+    private var lastHandledAction: QuickActionType?
+    private var lastHandledAt: Date = .distantPast
     
     func handle(_ action: QuickActionType) {
+        let now = Date()
+        if lastHandledAction == action, now.timeIntervalSince(lastHandledAt) < 0.5 {
+            return
+        }
+        lastHandledAction = action
+        lastHandledAt = now
         pendingAction = action
     }
 }
@@ -116,8 +123,7 @@ struct LucaApp: App {
                 lunarCalendarService: lunarCalendarService,
                 dataManager: dataManager,
                 notificationManager: notificationManager,
-                settingsManager: settingsManager,
-                themeManager: themeManager
+                settingsManager: settingsManager
             )
                 .environmentObject(coreDataStack)
                 .environmentObject(initializationService)
@@ -130,6 +136,11 @@ struct LucaApp: App {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                     handleAppDidBecomeActive()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .settingsDidChange)) { _ in
+                    Task { @MainActor in
+                        updateHomeScreenQuickActions()
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
                     handleSignificantTimeChange()
@@ -150,6 +161,10 @@ struct LucaApp: App {
             
             // Start dynamic reminder service
             dynamicReminderService.startService()
+
+            await MainActor.run {
+                updateHomeScreenQuickActions()
+            }
         }
     }
     
@@ -157,6 +172,9 @@ struct LucaApp: App {
     private func handleAppDidBecomeActive() {
         Task {
             await dynamicReminderService.handleAppDidBecomeActive()
+            await MainActor.run {
+                updateHomeScreenQuickActions()
+            }
         }
     }
     
@@ -224,6 +242,32 @@ struct LucaApp: App {
         default:
             return .calendar(Date())
         }
+    }
+
+    @MainActor
+    private func updateHomeScreenQuickActions() {
+        let notificationsEnabled = settingsManager.loadSettings().notificationsEnabled
+        let toggleTitle = notificationsEnabled
+            ? String.localized(.muteNotifications)
+            : String.localized(.unmuteNotifications)
+        let toggleIconName = notificationsEnabled ? "bell.slash" : "bell"
+
+        UIApplication.shared.shortcutItems = [
+            UIApplicationShortcutItem(
+                type: QuickActionType.createEvent.rawValue,
+                localizedTitle: String.localized(.createEvent),
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: "plus.circle"),
+                userInfo: nil
+            ),
+            UIApplicationShortcutItem(
+                type: QuickActionType.toggleNotifications.rawValue,
+                localizedTitle: toggleTitle,
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: toggleIconName),
+                userInfo: nil
+            )
+        ]
     }
 }
 
@@ -294,10 +338,13 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
 /// Minimal app delegate for cold-launch quick action handling
 class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let configuration = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        configuration.delegateClass = SceneDelegate.self
+        return configuration
+    }
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        DispatchQueue.main.async {
-            self.injectSceneQuickActionHandler()
-        }
         return true
     }
     
@@ -311,25 +358,26 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             completionHandler(false)
         }
     }
-    
-    private func injectSceneQuickActionHandler() {
-        guard let scene = UIApplication.shared.connectedScenes.first,
-              let delegate = scene.delegate else { return }
-        let cls: AnyClass = type(of: delegate)
-        let selector = NSSelectorFromString("windowScene:performActionForShortcutItem:completionHandler:")
-        let block: @convention(block) (NSObject, UIWindowScene, UIApplicationShortcutItem, @escaping (Bool) -> Void) -> Void = { _, _, shortcutItem, completionHandler in
-            if let type = QuickActionType(rawValue: shortcutItem.type) {
-                Task { @MainActor in
-                    QuickActionHandler.shared.handle(type)
-                }
+
+    /// Handles home-screen quick actions in scene-based lifecycle.
+    final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+        func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+            if let shortcutItem = connectionOptions.shortcutItem {
+                handle(shortcutItem)
             }
-            completionHandler(true)
         }
-        let imp = imp_implementationWithBlock(block)
-        if let existingMethod = class_getInstanceMethod(cls, selector) {
-            method_setImplementation(existingMethod, imp)
-        } else {
-            class_addMethod(cls, selector, imp, "v@:@@@?")
+
+        func windowScene(_ windowScene: UIWindowScene, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+            completionHandler(handle(shortcutItem))
+        }
+
+        @discardableResult
+        private func handle(_ shortcutItem: UIApplicationShortcutItem) -> Bool {
+            guard let type = QuickActionType(rawValue: shortcutItem.type) else { return false }
+            Task { @MainActor in
+                QuickActionHandler.shared.handle(type)
+            }
+            return true
         }
     }
 }
