@@ -77,6 +77,7 @@ class Event: ObservableObject, Identifiable, Codable {
     let id: UUID
     @Published var title: String
     @Published var description: String
+    @Published var referenceLink: String?
     @Published var lunarDate: LunarDate
     @Published var gregorianDate: Date
     @Published var category: EventCategory
@@ -214,6 +215,7 @@ class Event: ObservableObject, Identifiable, Codable {
         id: UUID = UUID(),
         title: String,
         description: String = "",
+        referenceLink: String? = nil,
         lunarDate: LunarDate,
         gregorianDate: Date? = nil,
         category: EventCategory = .personal,
@@ -231,6 +233,7 @@ class Event: ObservableObject, Identifiable, Codable {
         self.id = id
         self.title = title
         self.description = description
+        self.referenceLink = referenceLink
         self.lunarDate = lunarDate
         self.gregorianDate = gregorianDate ?? lunarDate.toGregorian()
         self.category = category
@@ -252,7 +255,7 @@ class Event: ObservableObject, Identifiable, Codable {
         components.minute = 0
         return Calendar.current.date(from: components) ?? Date()
     }
-    
+
     /// Create an Event from Core Data EventEntity
     /// - Parameter entity: The Core Data entity
     /// - Returns: Event instance
@@ -275,6 +278,7 @@ class Event: ObservableObject, Identifiable, Codable {
             id: entity.id ?? UUID(),
             title: entity.title ?? "",
             description: entity.eventDescription ?? "",
+            referenceLink: entity.value(forKey: "referenceLink") as? String,
             lunarDate: lunarDate,
             gregorianDate: entity.gregorianDate,
             category: category,
@@ -297,6 +301,7 @@ class Event: ObservableObject, Identifiable, Codable {
         entity.id = self.id
         entity.title = self.title
         entity.eventDescription = self.description
+        entity.setValue(self.referenceLink, forKey: "referenceLink")
         entity.lunarYear = Int32(self.lunarDate.year)
         entity.lunarMonth = Int32(self.lunarDate.month)
         entity.lunarDay = Int32(self.lunarDate.day)
@@ -320,7 +325,7 @@ class Event: ObservableObject, Identifiable, Codable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, title, description, lunarDate, gregorianDate, category, isPublicHoliday, recurrence, reminderSettings, soundEnabled, vibrationEnabled, notificationTime, notificationSoundName, duration, ceremonyMonth, isEnabled
+        case id, title, description, referenceLink, lunarDate, gregorianDate, category, isPublicHoliday, recurrence, reminderSettings, soundEnabled, vibrationEnabled, notificationTime, notificationSoundName, duration, ceremonyMonth, isEnabled
         case oldIsRecurring = "isRecurring"
     }
 
@@ -329,6 +334,7 @@ class Event: ObservableObject, Identifiable, Codable {
         id = try container.decode(UUID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         description = try container.decode(String.self, forKey: .description)
+        referenceLink = try container.decodeIfPresent(String.self, forKey: .referenceLink)
         let decodedLunarDate = try container.decode(LunarDate.self, forKey: .lunarDate)
         lunarDate = decodedLunarDate
         let decodedGregorian = try container.decodeIfPresent(Date.self, forKey: .gregorianDate)
@@ -357,6 +363,7 @@ class Event: ObservableObject, Identifiable, Codable {
         try container.encode(id, forKey: .id)
         try container.encode(title, forKey: .title)
         try container.encode(description, forKey: .description)
+        try container.encodeIfPresent(referenceLink, forKey: .referenceLink)
         try container.encode(lunarDate, forKey: .lunarDate)
         try container.encode(gregorianDate, forKey: .gregorianDate)
         try container.encode(category, forKey: .category)

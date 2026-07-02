@@ -205,10 +205,18 @@ struct LucaApp: App {
     
     /// Parse deep link from URL components
     private func parseDeepLink(from components: URLComponents) -> DeepLink {
-        let path = components.path
+        let normalizedPath: String = {
+            if !components.path.isEmpty {
+                return components.path
+            }
+            if let host = components.host, !host.isEmpty {
+                return "/\(host)"
+            }
+            return ""
+        }()
         let queryItems = components.queryItems ?? []
         
-        switch path {
+        switch normalizedPath {
         case "/event":
             if let eventIdString = queryItems.first(where: { $0.name == "id" })?.value,
                let eventId = UUID(uuidString: eventIdString) {

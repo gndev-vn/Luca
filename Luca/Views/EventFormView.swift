@@ -17,6 +17,7 @@ struct EventFormView: View {
     // Form state
     @State private var title: String
     @State private var description: String
+    @State private var referenceLink: String
     @State private var selectedCategory: EventCategory
     @State private var recurrence: RecurrenceType
     @State private var selectedLunarDate: LunarDate
@@ -116,6 +117,7 @@ struct EventFormView: View {
         
         _title = State(initialValue: "")
         _description = State(initialValue: "")
+        _referenceLink = State(initialValue: "")
         _selectedCategory = State(initialValue: .personal)
         _recurrence = State(initialValue: .none)
         _selectedLunarDate = State(initialValue: lunarDate)
@@ -136,7 +138,7 @@ struct EventFormView: View {
     private var shouldShowCategory: Bool {
         isEditing && !isPreseeded
     }
-    
+
     /// Initialize for editing an existing event
     init(viewModel: EventViewModel,
          event: Event,
@@ -149,6 +151,7 @@ struct EventFormView: View {
         
         _title = State(initialValue: event.title)
         _description = State(initialValue: event.description)
+        _referenceLink = State(initialValue: event.referenceLink ?? "")
         _selectedCategory = State(initialValue: event.category)
         _recurrence = State(initialValue: event.recurrence)
         _selectedLunarDate = State(initialValue: event.lunarDate)
@@ -204,6 +207,13 @@ struct EventFormView: View {
                                 .accessibilityLabel("Event description")
                                 .accessibilityHint("Enter an optional description for your event")
                         }
+
+                        TextField(String.localized(.referenceLinkOptional), text: $referenceLink)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                            .font(.subheadline)
+                            .accessibilityLabel(String.localized(.referenceLinkOptional))
                     }
                     .padding(.vertical, 8)
                 } header: {
@@ -435,6 +445,7 @@ struct EventFormView: View {
                         .pickerStyle(.segmented)
                         .padding(.leading)
                     }
+
                 } header: {
                     Text(localized: .reminders)
                         .textCase(nil)
@@ -610,6 +621,14 @@ struct EventFormView: View {
         if title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             validationErrors.append(String.localized(.eventTitleRequired))
         }
+
+        let trimmedReferenceLink = referenceLink.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedReferenceLink.isEmpty {
+            let scheme = URL(string: trimmedReferenceLink)?.scheme?.lowercased()
+            if scheme != "http" && scheme != "https" {
+                validationErrors.append(String.localized(.invalidReferenceLink))
+            }
+        }
         
         if !selectedLunarDate.isValid() {
             validationErrors.append(String.localized(.invalidLunarDate))
@@ -651,6 +670,7 @@ struct EventFormView: View {
                     existingEvent.recurrence = recurrence
                     existingEvent.reminderSettings = reminderSettings
                     existingEvent.notificationTime = notificationTime
+                    existingEvent.referenceLink = trimmedReferenceLink.isEmpty ? nil : trimmedReferenceLink
                     existingEvent.soundEnabled = soundEnabled
                     existingEvent.vibrationEnabled = vibrationEnabled
                     existingEvent.notificationSoundName = notificationSoundName
@@ -662,6 +682,7 @@ struct EventFormView: View {
                 eventToSave = Event(
                     title: title.trimmingCharacters(in: .whitespacesAndNewlines),
                     description: description.trimmingCharacters(in: .whitespacesAndNewlines),
+                    referenceLink: trimmedReferenceLink.isEmpty ? nil : trimmedReferenceLink,
                     lunarDate: selectedLunarDate,
                     category: selectedCategory,
                     isPublicHoliday: false,
@@ -681,6 +702,7 @@ struct EventFormView: View {
             dismiss()
         }
     }
+
 }
 
 #Preview("New Event") {

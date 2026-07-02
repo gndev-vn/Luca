@@ -6,8 +6,37 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D1A111111111111111111118 /* LucaWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D1A111111111111111111111 /* LucaWidgets.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D1A11111111111111111111A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C815B7672EF1620900596EAC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D1A111111111111111111113;
+			remoteInfo = LucaWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D1A111111111111111111117 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D1A111111111111111111118 /* LucaWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		C81570DF2FED6BED002D12EA /* Luca.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Luca.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1A111111111111111111111 /* LucaWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LucaWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +45,22 @@
 			path = Luca;
 			sourceTree = "<group>";
 		};
+		D1A111111111111111111112 /* LucaWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LucaWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C815B76C2EF1620900596EAC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A111111111111111111115 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,7 +74,9 @@
 			isa = PBXGroup;
 			children = (
 				C8D5BFF72FD9298200BE89AF /* Luca */,
+				D1A111111111111111111112 /* LucaWidgets */,
 				C81570DF2FED6BED002D12EA /* Luca.app */,
+				D1A111111111111111111111 /* LucaWidgets.appex */,
 			);
 			sourceTree = "<group>";
 		};
@@ -47,10 +90,12 @@
 				C815B76B2EF1620900596EAC /* Sources */,
 				C815B76C2EF1620900596EAC /* Frameworks */,
 				C815B76D2EF1620900596EAC /* Resources */,
+				D1A111111111111111111117 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D1A111111111111111111119 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C8D5BFF72FD9298200BE89AF /* Luca */,
@@ -61,6 +106,28 @@
 			productName = Luca;
 			productReference = C81570DF2FED6BED002D12EA /* Luca.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D1A111111111111111111113 /* LucaWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D1A11111111111111111111B /* Build configuration list for PBXNativeTarget "LucaWidgets" */;
+			buildPhases = (
+				D1A111111111111111111114 /* Sources */,
+				D1A111111111111111111115 /* Frameworks */,
+				D1A111111111111111111116 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D1A111111111111111111112 /* LucaWidgets */,
+			);
+			name = LucaWidgets;
+			packageProductDependencies = (
+			);
+			productName = LucaWidgets;
+			productReference = D1A111111111111111111111 /* LucaWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -73,6 +140,9 @@
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					C815B76E2EF1620900596EAC = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					D1A111111111111111111113 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -97,12 +167,20 @@
 			projectRoot = "";
 			targets = (
 				C815B76E2EF1620900596EAC /* Luca */,
+				D1A111111111111111111113 /* LucaWidgets */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C815B76D2EF1620900596EAC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A111111111111111111116 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -119,7 +197,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D1A111111111111111111114 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D1A111111111111111111119 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D1A111111111111111111113 /* LucaWidgets */;
+			targetProxy = D1A11111111111111111111A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C815B77A2EF1620A00596EAC /* Debug */ = {
@@ -252,6 +345,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Luca/Luca.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TUAH3F2F47;
@@ -284,6 +378,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Luca/Luca.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TUAH3F2F47;
@@ -311,6 +406,58 @@
 			};
 			name = Release;
 		};
+		D1A11111111111111111111C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = LucaWidgets/LucaWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TUAH3F2F47;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LucaWidgets-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gndev.Luca.LucaWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D1A11111111111111111111D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = LucaWidgets/LucaWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TUAH3F2F47;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LucaWidgets-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gndev.Luca.LucaWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -328,6 +475,15 @@
 			buildConfigurations = (
 				C815B77D2EF1620A00596EAC /* Debug */,
 				C815B77E2EF1620A00596EAC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D1A11111111111111111111B /* Build configuration list for PBXNativeTarget "LucaWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D1A11111111111111111111C /* Debug */,
+				D1A11111111111111111111D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

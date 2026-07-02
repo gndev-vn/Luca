@@ -127,6 +127,7 @@
 "theme_information" = "Thông tin chủ đề";
 "event_title" = "Tiêu đề sự kiện";
 "description_optional" = "Mô tả (tùy chọn)";
+"reference_link_optional" = "Liên kết tham khảo (tùy chọn)";
 "upcoming_events" = "Sắp diễn ra";
 "and_more_format" = "và %d cái khác...";
 
@@ -136,6 +137,7 @@
 "reminder_description" = "Nhắc nhở sẽ được gửi dưới dạng thông báo iOS vào thời gian đã chỉ định";
 "validation_error" = "Lỗi xác thực";
 "event_title_required" = "Tiêu đề sự kiện là bắt buộc";
+"invalid_reference_link" = "Liên kết tham khảo phải bắt đầu bằng http:// hoặc https://";
 "invalid_lunar_date" = "Ngày âm lịch không hợp lệ";
 "saving" = "Đang lưu...";
 "create" = "Tạo";

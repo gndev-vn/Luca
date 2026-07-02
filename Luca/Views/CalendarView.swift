@@ -870,32 +870,32 @@ struct CalendarDateView: View {
 struct EventDetailSheet: View {
     let event: Event
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Event header with enhanced styling
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(event.title)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(
-                                    event.isPublicHoliday ? .red : .primary
-                                )
-
-                            Spacer()
-
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top, spacing: 10) {
                             if event.isPublicHoliday {
                                 Image(systemName: "star.fill")
                                     .foregroundColor(.red)
-                                    .font(.title2)
+                                    .font(.headline)
+                                    .padding(.top, 4)
                             }
+
+                            Text(event.title)
+                                .font(horizontalSizeClass == .compact ? .title2.weight(.bold) : .largeTitle.weight(.bold))
+                                .foregroundColor(event.isPublicHoliday ? .red : .primary)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.82)
+
+                            Spacer(minLength: 0)
                         }
 
                         if event.recurrence.isRepeating {
-                            // Recurrence description
                             HStack(spacing: 8) {
                                 Image(systemName: "repeat")
                                     .foregroundColor(.accentColor)
@@ -905,7 +905,6 @@ struct EventDetailSheet: View {
                                     .foregroundColor(.primary)
                             }
                         } else {
-                            // Lunar date with enhanced display
                             HStack(spacing: 8) {
                                 Image(systemName: "calendar.circle.fill")
                                     .foregroundColor(.accentColor)
@@ -918,13 +917,13 @@ struct EventDetailSheet: View {
                                     if event.lunarDate.isLeapMonth {
                                         HStack {
                                             Text(LocalizationService.leapMonthIndicator())
-                                            .font(.caption)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.orange)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 3)
-                                            .background(Color.orange.opacity(0.2))
-                                            .cornerRadius(6)
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.orange)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 3)
+                                                .background(Color.orange.opacity(0.2))
+                                                .cornerRadius(6)
 
                                             Text(localized: .leapMonth)
                                                 .font(.caption2)
@@ -934,24 +933,22 @@ struct EventDetailSheet: View {
                                 }
                             }
 
-                            // Gregorian date
                             HStack(spacing: 8) {
                                 Image(systemName: "calendar")
                                     .foregroundColor(.secondary)
 
-                                Text(
-                                    SharedDateFormatters.fullDate.string(from: event.gregorianDate)
-                                )
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                Text(SharedDateFormatters.fullDate.string(from: event.gregorianDate))
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
                             }
                         }
                     }
                     .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(AppDesign.cardCornerRadius)
+                    .background(
+                        Color(.secondarySystemGroupedBackground),
+                        in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous)
+                    )
 
-                    // Event description
                     if !event.description.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Label(String.localized(.description), systemImage: "text.alignleft")
@@ -960,13 +957,39 @@ struct EventDetailSheet: View {
 
                             Text(event.description)
                                 .font(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(AppDesign.cardCornerRadius)
+                                .background(
+                                    Color(.secondarySystemGroupedBackground),
+                                    in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous)
+                                )
                         }
                     }
 
-                    // Category and additional details
+                    if let referenceURL {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label(String.localized(.referenceLinkOptional), systemImage: "link")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+
+                            Button {
+                                openURL(referenceURL)
+                            } label: {
+                                Text(referenceURL.absoluteString)
+                                    .font(.body)
+                                    .underline()
+                                    .foregroundColor(.accentColor)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding()
+                                    .background(
+                                        Color(.secondarySystemGroupedBackground),
+                                        in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
                     VStack(alignment: .leading, spacing: 12) {
                         Label(String.localized(.category), systemImage: "tag.fill")
                             .font(.headline)
@@ -990,8 +1013,7 @@ struct EventDetailSheet: View {
                                     .font(.subheadline)
                                     .fontWeight(.medium)
 
-                                ForEach(event.reminderSettings, id: \.self) {
-                                    reminder in
+                                ForEach(event.reminderSettings, id: \.self) { reminder in
                                     HStack {
                                         Image(systemName: "bell.fill")
                                             .foregroundColor(.orange)
@@ -1003,13 +1025,19 @@ struct EventDetailSheet: View {
                                     }
                                 }
                             }
+                            .padding()
+                            .background(
+                                Color(.secondarySystemGroupedBackground),
+                                in: RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius, style: .continuous)
+                            )
                         }
                     }
-
-                    Spacer()
                 }
-                .padding()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
             }
+            .scrollIndicators(.hidden)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle(
                 event.isPublicHoliday
                     ? String.localized(.holidayDetails)
@@ -1024,6 +1052,17 @@ struct EventDetailSheet: View {
                 }
             }
         }
+    }
+
+    private var referenceURL: URL? {
+        guard let raw = event.referenceLink?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return nil
+        }
+        return url
     }
 
     private func lunarDateDisplayText(_ lunarDate: LunarDate) -> String {

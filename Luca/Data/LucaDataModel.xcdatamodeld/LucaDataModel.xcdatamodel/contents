@@ -16,6 +16,7 @@
         <attribute name="lunarYear" optional="YES" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
         <attribute name="notificationSoundName" optional="YES" attributeType="String"/>
         <attribute name="notificationTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="referenceLink" optional="YES" attributeType="String"/>
         <attribute name="soundEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

@@ -38,6 +38,7 @@ class EventViewModel: ObservableObject {
         do {
             let allEvents = try await dataManager.fetchAllEvents()
             events = allEvents
+            WidgetSyncService.shared.updateSnapshot(with: allEvents)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -180,6 +181,40 @@ class EventViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Batch toggle reminders for a set of events.
+    func setRemindersEnabled(_ enabled: Bool, for events: [Event]) async {
+        guard !events.isEmpty else { return }
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            for event in events {
+                let updatedEvent = event
+                if enabled {
+                    if updatedEvent.reminderSettings.isEmpty {
+                        updatedEvent.reminderSettings = [.oneDayBefore]
+                    }
+                } else {
+                    updatedEvent.reminderSettings = []
+                }
+
+                notificationManager.cancelAllReminders(for: updatedEvent.id)
+                try await dataManager.updateEvent(updatedEvent)
+
+                if enabled, updatedEvent.isEnabled, !updatedEvent.reminderSettings.isEmpty {
+                    await scheduleReminders(for: updatedEvent, respectingCategorySettings: true)
+                }
+            }
+
+            await loadEvents()
+            postEventsChangedNotification()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
     }
     
     /// Validate event data

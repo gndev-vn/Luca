@@ -112,6 +112,7 @@ enum LocalizedStringKey: String, CaseIterable {
     case themeInformation = "theme_information"
     case eventTitle = "event_title"
     case descriptionOptional = "description_optional"
+    case referenceLinkOptional = "reference_link_optional"
     case upcomingEvents = "upcoming_events"
     case andMoreFormat = "and_more_format"
 
@@ -120,6 +121,7 @@ enum LocalizedStringKey: String, CaseIterable {
     case reminderDescription = "reminder_description"
     case validationError = "validation_error"
     case eventTitleRequired = "event_title_required"
+    case invalidReferenceLink = "invalid_reference_link"
     case invalidLunarDate = "invalid_lunar_date"
     case saving = "saving"
     case create = "create"
@@ -132,7 +134,6 @@ enum LocalizedStringKey: String, CaseIterable {
     case quickAdd = "quick_add"
     case createCustomEvent = "create_custom_event"
     case addPersonalizedEvent = "add_personalized_event"
-    case commonEvents = "common_events"
     case recentEvents = "recent_events"
     case duplicate = "duplicate"
     case dateInformation = "date_information"
